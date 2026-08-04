@@ -1,0 +1,12 @@
+{
+  "extends": "@repo/typescript-config/library.json",
+  "compilerOptions": {
+    // Sem `types: ["node"]` de propósito: este pacote roda no browser. Se algum arquivo
+    // aqui precisar de API do Node, é sinal de que ele pertence a `@repo/db`.
+    "types": [],
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Base",
+
+  // Só o que os dois apps já tinham em comum. `strict` fica de fora de propósito:
+  // a API liga as flags de checagem individualmente (strictNullChecks, noImplicitAny,
+  // strictBindCallApply) e o web usa `strict: true`. Forçar uma base comum aqui
+  // mudaria a checagem de um dos dois lados — a unificação, se vier, é gradual.
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

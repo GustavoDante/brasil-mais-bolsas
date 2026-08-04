@@ -1,0 +1,13 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# `@scarf/scarf` fica de fora: é só telemetria.
+allowBuilds:
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  bcrypt: true
+  prisma: true
+  prisma-zod-generator: true
+  sharp: true
+  unrs-resolver: true

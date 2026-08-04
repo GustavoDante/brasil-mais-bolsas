@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  // `scripts` e `prisma.config.ts` ficam fora do build: são rodados via ts-node e, se
+  // entrarem aqui, o tsc sobe o rootDir para a raiz do projeto e a saída vira
+  // `dist/src/main.js` — quebrando o `start:prod` (`node dist/main`).
+  "exclude": [
+    "node_modules",
+    "test",
+    "dist",
+    "scripts",
+    "prisma",
+    "prisma.config.ts",
+    "**/*spec.ts"
+  ]
+}

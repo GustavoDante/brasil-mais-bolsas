@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+
+  // `prisma`, `prisma.config.ts` e `generated` ficam fora do build: se entrarem, o tsc
+  // sobe o `rootDir` para a raiz do pacote e a saída vira `dist/src/index.js`, quebrando
+  // o `main` do package.json. É a mesma armadilha já documentada no tsconfig.build da API.
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "generated", "prisma", "prisma.config.ts"]
+}

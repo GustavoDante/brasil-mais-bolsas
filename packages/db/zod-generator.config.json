@@ -1,0 +1,19 @@
+{
+  "mode": "custom",
+  "pureModels": true,
+  "pureModelsLean": true,
+  "decimalMode": "string",
+  "jsonSchemaCompatible": true,
+  "dateTimeFormat": "isoString",
+  "dateTimeStrategy": "isoString",
+  "variants": {
+    "pure": { "enabled": true },
+    "input": { "enabled": false },
+    "result": { "enabled": false }
+  },
+  "emit": {
+    "objects": false,
+    "crud": false,
+    "variants": false
+  }
+}

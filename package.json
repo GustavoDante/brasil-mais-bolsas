@@ -1,0 +1,24 @@
+{
+  "name": "bmb-monorepo",
+  "private": true,
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "turbo run db:generate",
+    "db:migrate": "pnpm --filter @repo/db exec prisma migrate dev",
+    "db:deploy": "pnpm --filter @repo/db exec prisma migrate deploy",
+    "db:studio": "pnpm --filter @repo/db exec prisma studio",
+    "db:seed": "pnpm --filter @repo/db run db:seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.10.8",
+    "typescript": "^5.7.3"
+  }
+}

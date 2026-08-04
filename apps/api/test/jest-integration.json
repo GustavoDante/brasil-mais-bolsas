@@ -1,0 +1,13 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts", "tsx"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".integration-spec.ts$",
+  "setupFiles": ["<rootDir>/setup-env.ts"],
+  "moduleNameMapper": {
+    "^@repo/db$": "<rootDir>/../src/__mocks__/prisma-client.mock.ts"
+  },
+  "transform": {
+    "^.+\\.(t|j)sx?$": "ts-jest"
+  }
+}

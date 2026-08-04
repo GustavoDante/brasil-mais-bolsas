@@ -1,0 +1,87 @@
+# .gitignore ÚNICO do monorepo.
+#
+# Os apps não têm .gitignore próprio de propósito: com dois arquivos, uma regra
+# adicionada aqui parece valer para tudo e silenciosamente não vale. Regra nova,
+# mesmo que só faça sentido para um app, entra aqui com o caminho do app.
+
+# Dependências
+node_modules/
+.pnpm-store/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+apps/web/next-env.d.ts
+
+# Turborepo
+.turbo/
+
+# Artefatos gerados (nunca versionados — saem de `pnpm db:generate`)
+packages/db/generated/
+packages/contracts/src/generated/
+
+# Ambiente
+#
+# Bloqueia .env de qualquer nível e libera só o exemplo. É deliberadamente amplo:
+# `apps/api/.env` guarda DATABASE_URL e as credenciais do bucket, e uma lista de
+# nomes exatos (.env.local, .env.production.local, ...) deixa passar um
+# `.env.production` ou `.env.staging` criado depois.
+.env*
+!.env.example
+
+# Certificados e chaves
+*.pem
+*.key
+
+# Testes
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Relatórios da migração do banco legado
+apps/api/scripts/legacy-migration/reports/
+
+# Ferramentas de agente (worktrees e configuração local)
+.claude/
+
+# Editores / SO
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.project
+.classpath
+*.sublime-workspace
+
+# Deploy
+.vercel
+
+# Runtime
+pids/
+*.pid
+*.seed
+*.pid.lock
+.temp
+.tmp
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

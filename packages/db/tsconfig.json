@@ -1,0 +1,15 @@
+{
+  "extends": "@repo/typescript-config/library.json",
+
+  // Projeto de CHECAGEM: cobre tudo que é TypeScript no pacote, inclusive o
+  // `prisma.config.ts` e o `prisma/seed.ts` — que rodam via ts-node e, sem estarem em
+  // nenhum projeto, ficavam sem verificação (foi assim que o seed passou a apontar para
+  // um caminho de client que não existe mais). Quem emite é o `tsconfig.build.json`.
+  "compilerOptions": {
+    "types": ["node"],
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src/**/*.ts", "prisma/**/*.ts", "prisma.config.ts"],
+  "exclude": ["node_modules", "dist", "generated"]
+}
