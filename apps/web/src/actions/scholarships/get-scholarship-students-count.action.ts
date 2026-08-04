@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da bolsa"),
-});
-
-export type GetScholarshipStudentsCountInput = z.infer<typeof schema>;
+import {
+  getScholarshipStudentsCountInputSchema,
+  type GetScholarshipStudentsCountInput,
+} from "@/schemas/scholarships/get-scholarship-students-count.schema";
 
 /**
  * `GET /v1/scholarships/students_count/:id` — Quantidade de alunos de uma bolsa.
@@ -20,7 +17,7 @@ export async function getScholarshipStudentsCount(
 ): Promise<ActionResult<number>> {
   return executeAction({
     input,
-    schema,
+    schema: getScholarshipStudentsCountInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; students_count: number }>(

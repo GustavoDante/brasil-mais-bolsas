@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateAddressStandaloneSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { AddressDto } from "@/lib/api/dto";
-
-const schema = CreateAddressStandaloneSchema;
-
-export type CreateAddressInput = z.infer<typeof schema>;
+import {
+  createAddressInputSchema,
+  type CreateAddressInput,
+} from "@/schemas/addresses/create-address.schema";
 
 /**
  * `POST /v1/addresses` — Cria um endereço avulso vinculado a um usuário.
@@ -22,7 +16,7 @@ export async function createAddress(
 ): Promise<ActionResult<AddressDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createAddressInputSchema,
     auth: "optional",
     successMessage: "Endereço cadastrado.",
     revalidateTags: ["addresses"],

@@ -1,17 +1,11 @@
 "use server";
 
-import { CreateCourseCategorySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = CreateCourseCategorySchema;
-
-export type CreateCourseCategoryInput = z.infer<typeof schema>;
+import {
+  createCourseCategoryInputSchema,
+  type CreateCourseCategoryInput,
+} from "@/schemas/course-categories/create-course-category.schema";
 
 /**
  * `POST /v1/course-categories` — Cria uma categoria de curso (admin).
@@ -23,7 +17,7 @@ export async function createCourseCategory(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: createCourseCategoryInputSchema,
     auth: "required",
     successMessage: "Categoria criada.",
     revalidateTags: ["course-categories"],

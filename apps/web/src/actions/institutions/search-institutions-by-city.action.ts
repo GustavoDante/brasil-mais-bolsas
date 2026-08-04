@@ -1,19 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalText,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { InstitutionDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  term: zOptionalText(),
-});
-
-export type SearchInstitutionsByCityInput = z.infer<typeof schema>;
+import {
+  searchInstitutionsByCityInputSchema,
+  type SearchInstitutionsByCityInput,
+} from "@/schemas/institutions/search-institutions-by-city.schema";
 
 /**
  * `GET /v1/institutions/search/by_city` — Busca instituições por cidade.
@@ -25,7 +18,7 @@ export async function searchInstitutionsByCity(
 ): Promise<ActionResult<InstitutionDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: searchInstitutionsByCityInputSchema,
     auth: "required",
     run: ({ term }, { token }) =>
       apiRequest<{ courses: InstitutionDto[] }>(

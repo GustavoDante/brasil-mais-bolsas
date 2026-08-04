@@ -1,17 +1,11 @@
 "use server";
 
-import { CreateInstitutionSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = CreateInstitutionSchema;
-
-export type CreateInstitutionInput = z.infer<typeof schema>;
+import {
+  createInstitutionInputSchema,
+  type CreateInstitutionInput,
+} from "@/schemas/institutions/create-institution.schema";
 
 /**
  * `POST /v1/institutions` — Cria uma instituição (admin).
@@ -23,7 +17,7 @@ export async function createInstitution(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: createInstitutionInputSchema,
     auth: "required",
     successMessage: "Instituição criada.",
     revalidateTags: ["institutions"],

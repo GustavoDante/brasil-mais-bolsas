@@ -1,18 +1,12 @@
 "use server";
 
-import { UpdateUserSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { UserDto } from "@/lib/api/dto";
-
-const schema = UpdateUserSchema;
-
-export type UpdateMeInput = z.infer<typeof schema>;
+import {
+  updateMeInputSchema,
+  type UpdateMeInput,
+} from "@/schemas/users/update-me.schema";
 
 /**
  * `PUT /v1/users/me` — Atualiza os dados do usuário autenticado.
@@ -24,7 +18,7 @@ export async function updateMe(
 ): Promise<ActionResult<UserDto>> {
   return executeAction({
     input,
-    schema,
+    schema: updateMeInputSchema,
     auth: "required",
     successMessage: "Dados atualizados.",
     revalidateTags: ["users"],

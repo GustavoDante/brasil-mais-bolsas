@@ -1,20 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalText,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { NamedEntityDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  city: zOptionalText(),
-  category: zOptionalText(),
-});
-
-export type ListInstitutionsByCityInput = z.infer<typeof schema>;
+import {
+  listInstitutionsByCityInputSchema,
+  type ListInstitutionsByCityInput,
+} from "@/schemas/scholarships/list-institutions-by-city.schema";
 
 /**
  * `GET /v1/scholarships/list/institution/bycity` — Lista instituições com bolsas em uma cidade e categoria.
@@ -24,7 +16,7 @@ export async function listInstitutionsByCity(
 ): Promise<ActionResult<NamedEntityDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listInstitutionsByCityInputSchema,
     auth: "none",
     run: ({ city, category }) =>
       apiRequest<{ ok: boolean; institutions: NamedEntityDto[] }>(

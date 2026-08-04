@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { OrdersRenewalSummaryDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type RunOrdersRenewalInput = z.infer<typeof schema>;
+import { runOrdersRenewalInputSchema } from "@/schemas/jobs/run-orders-renewal.schema";
 
 /**
  * `POST /v1/jobs/orders-renewal/run` — Executa a renovação de pedidos agora e devolve o resumo (admin).
@@ -19,7 +15,7 @@ export async function runOrdersRenewal(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: runOrdersRenewalInputSchema,
     auth: "required",
     successMessage: "Renovação executada.",
     revalidateTags: ["orders"],
@@ -27,6 +23,6 @@ export async function runOrdersRenewal(): Promise<
       apiRequest<{ ok: boolean; summary: OrdersRenewalSummaryDto }>(
         "/jobs/orders-renewal/run",
         { method: "POST", token },
-      ).then((response) => response.summary),
+      ).then((response) => response.summary)
   });
 }

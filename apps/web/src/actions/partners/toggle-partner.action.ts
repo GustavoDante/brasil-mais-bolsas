@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id do parceiro"),
-});
-
-export type TogglePartnerInput = z.infer<typeof schema>;
+import {
+  togglePartnerInputSchema,
+  type TogglePartnerInput,
+} from "@/schemas/partners/toggle-partner.schema";
 
 /**
  * `PATCH /v1/partners/:id/toggle` — Ativa/desativa um parceiro (admin).
@@ -20,7 +17,7 @@ export async function togglePartner(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: togglePartnerInputSchema,
     auth: "required",
     successMessage: "Parceiro atualizado.",
     revalidateTags: ["partners"],

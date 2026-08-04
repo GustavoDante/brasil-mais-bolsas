@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CreateSignedContractDto } from './dto/signed-contract.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class SignedContractsService {
@@ -9,11 +10,11 @@ export class SignedContractsService {
   async create(dto: CreateSignedContractDto) {
     // validate user and scholarship exist
     const user = await this.prisma.user.findUnique({ where: { id: dto.user_id } });
-    if (!user) throw new BadRequestException('user-not-found');
+    if (!user) throw new AppException('invalid-user');
     const scholarship = await this.prisma.scholarship.findUnique({
       where: { id: dto.scholarship_id },
     });
-    if (!scholarship) throw new BadRequestException('scholarship-not-found');
+    if (!scholarship) throw new AppException('invalid-scholarship');
 
     return this.prisma.signedContract.create({
       data: {

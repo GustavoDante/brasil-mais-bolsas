@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { AsaasService } from '../../integrations/asaas/asaas.service';
@@ -7,6 +6,7 @@ import { PrismaService } from '../../database/prisma/prisma.service';
 import { PaymentType } from '@repo/db';
 import { OrdersService } from '../orders/orders.service';
 import { PaymentsService } from './payments.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type ModelMock = Record<string, jest.Mock>;
 
@@ -167,7 +167,7 @@ describe('PaymentsService', () => {
     });
 
     it('deve marcar o pagamento como FAILED quando o Asaas falhar', async () => {
-      asaasService.createPayment.mockRejectedValue(new BadRequestException('asaas-error'));
+      asaasService.createPayment.mockRejectedValue(new AppException('asaas-rejected'));
 
       await expect(
         service.createCreditCardPayment('user-1', {
@@ -189,7 +189,7 @@ describe('PaymentsService', () => {
           },
           remoteIp: '203.0.113.10',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
 
       expect(prisma.payment.update).toHaveBeenCalledWith({
         where: { id: 'payment-1' },
@@ -204,7 +204,7 @@ describe('PaymentsService', () => {
 
       await expect(
         service.createInterestPayment('user-1', { scholarship_id: 'scholarship-1' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('deve criar pagamento de interesse com cobranca PIX no Asaas', async () => {
@@ -276,7 +276,7 @@ describe('PaymentsService', () => {
             billingType: 'PIX',
           },
         }),
-      ).rejects.toThrow('invalid-asaas-webhook-token');
+      ).rejects.toMatchObject({ code: 'invalid-asaas-webhook-token' });
     });
 
     it('deve atualizar status do pagamento pelo gateway_payment_id', async () => {

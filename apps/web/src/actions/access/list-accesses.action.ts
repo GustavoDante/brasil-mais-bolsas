@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { AccessDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListAccessesInput = z.infer<typeof schema>;
+import { listAccessesInputSchema } from "@/schemas/access/list-accesses.schema";
 
 /**
  * `GET /v1/access` — Lista os acessos registrados.
@@ -17,11 +13,11 @@ export type ListAccessesInput = z.infer<typeof schema>;
 export async function listAccesses(): Promise<ActionResult<AccessDto[]>> {
   return executeAction({
     input: {},
-    schema,
+    schema: listAccessesInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; accesses: AccessDto[] }>("/access", {
-        token,
-      }).then((response) => response.accesses),
+        token
+      }).then((response) => response.accesses)
   });
 }

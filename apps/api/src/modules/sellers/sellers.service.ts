@@ -6,6 +6,7 @@ import {
   UpdateSellerDto,
   SellerLoginDto,
 } from './dto/sellers.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class SellersService {
@@ -16,7 +17,7 @@ export class SellersService {
       where: { email: dto.email, delete: false },
     });
     if (existing) {
-      throw new BadRequestException('Seller email already exists');
+      throw new AppException('seller-email-already-taken');
     }
 
     return this.prisma.seller.create({
@@ -154,11 +155,7 @@ export class SellersService {
     });
 
     if (!seller) {
-      throw new BadRequestException({
-        ok: false,
-        message: 'seller-not-found',
-        userMessage: 'Usuário não encontrado',
-      });
+      throw new AppException('seller-not-found');
     }
 
     let students_count = 0;
@@ -185,7 +182,7 @@ export class SellersService {
     const seller = await this.prisma.seller.findFirst({
       where: { id, delete: false },
     });
-    if (!seller) throw new BadRequestException('seller-not-found');
+    if (!seller) throw new AppException('seller-not-found');
     return seller;
   }
 

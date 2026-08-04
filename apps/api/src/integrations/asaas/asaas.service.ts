@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  ServiceUnavailableException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type {
   AsaasCustomerRequest,
@@ -15,6 +10,7 @@ import type {
   AsaasPaymentResponse,
   AsaasPixQrCodeResponse,
 } from './types/asaas.types';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class AsaasService {
@@ -62,7 +58,7 @@ export class AsaasService {
   ): Promise<TResponse> {
     const apiKey = this.configService.get<string>('ASAAS_API_KEY');
     if (!apiKey) {
-      throw new ServiceUnavailableException('asaas-api-key-not-configured');
+      throw new AppException('asaas-api-key-not-configured');
     }
 
     const response = await fetch(`${this.baseUrl}${path}`, {
@@ -85,31 +81,35 @@ export class AsaasService {
   }
 
   private throwAsaasError(status: number, responseBody: unknown): never {
+    // Único lugar que usa o override de mensagem do `AppException`: o Asaas devolve a
+    // descrição do que recusou ("CPF inválido", "cartão expirado") e ela é mais útil ao
+    // usuário que qualquer texto genérico nosso. Quando não vem descrição, cai na
+    // mensagem do catálogo.
     const message = this.extractAsaasErrorMessage(responseBody);
+    const options = message ? { message } : undefined;
 
     if (status === 401 || status === 403) {
-      throw new UnauthorizedException(message);
+      throw new AppException('asaas-unauthorized', options);
     }
 
     if (status >= 400 && status < 500) {
-      throw new BadRequestException(message);
+      throw new AppException('asaas-rejected', options);
     }
 
-    throw new ServiceUnavailableException(message);
+    throw new AppException('asaas-unavailable', options);
   }
 
-  private extractAsaasErrorMessage(responseBody: unknown): string {
+  /** Descrição que o Asaas deu para a recusa, ou `undefined` quando ele não deu nenhuma. */
+  private extractAsaasErrorMessage(responseBody: unknown): string | undefined {
     if (!this.isAsaasErrorResponse(responseBody)) {
-      return 'asaas-request-failed';
+      return undefined;
     }
 
     const descriptions = responseBody.errors
       ?.map((error) => error.description)
       .filter((description): description is string => Boolean(description));
 
-    return descriptions && descriptions.length > 0
-      ? descriptions.join('; ')
-      : 'asaas-request-failed';
+    return descriptions && descriptions.length > 0 ? descriptions.join('; ') : undefined;
   }
 
   private isAsaasErrorResponse(value: unknown): value is AsaasErrorResponse {

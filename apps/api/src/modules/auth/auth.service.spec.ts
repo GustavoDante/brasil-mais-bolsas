@@ -256,7 +256,7 @@ describe('AuthService', () => {
     it('deve recusar quando as senhas nao conferem', async () => {
       await expect(
         service.resetPassword('a'.repeat(64), 'SenhaNova123', 'OutraSenha123'),
-      ).rejects.toThrow('passwords-not-matching');
+      ).rejects.toMatchObject({ code: 'passwords-not-matching' });
       expect(usersService.findByValidResetToken).not.toHaveBeenCalled();
     });
 
@@ -265,7 +265,7 @@ describe('AuthService', () => {
 
       await expect(
         service.resetPassword('a'.repeat(64), 'SenhaNova123', 'SenhaNova123'),
-      ).rejects.toThrow('token-not-found-or-expired');
+      ).rejects.toMatchObject({ code: 'token-not-found-or-expired' });
       expect(usersService.updatePasswordAndClearResetToken).not.toHaveBeenCalled();
     });
   });

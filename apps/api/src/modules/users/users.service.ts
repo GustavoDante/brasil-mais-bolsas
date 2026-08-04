@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Address, User } from '@repo/db';
 import type { RegisterDto } from './dto/register.dto';
 import type { AdminUpdateUserDto, CreateUserDto, UpdateUserDto } from './dto/users.dto';
 import type { UserSafe } from './types/user-safe.type';
+import { AppException } from '../../common/exceptions/app.exception';
 
 export type UserWithAddress = User & { address: Address | null };
 
@@ -50,7 +51,7 @@ export class UsersService {
   async create(dto: CreateUserDto): Promise<UserWithAddress> {
     const existing = await this.findByEmail(dto.email.toLowerCase());
     if (existing) {
-      throw new ConflictException('Email já está em uso');
+      throw new AppException('email-already-taken');
     }
 
     const passwordRaw = dto.cpf.replace(/\D/g, '');
@@ -105,14 +106,14 @@ export class UsersService {
     const cpfDigits = dto.cpf.replace(/\D/g, '');
 
     if (await this.findByEmail(email)) {
-      throw new ConflictException('Email já está em uso');
+      throw new AppException('email-already-taken');
     }
 
     const existingCpf = await this.prisma.user.findFirst({
       where: { cpf: dto.cpf, delete: false },
     });
     if (existingCpf) {
-      throw new ConflictException('CPF já cadastrado');
+      throw new AppException('cpf-already-taken');
     }
 
     const partnerId = await this.resolvePartnerCode(dto.partner_code);
@@ -219,14 +220,14 @@ export class UsersService {
   async update(id: string, dto: UpdateUserDto | AdminUpdateUserDto): Promise<UserWithAddress> {
     const user = await this.findByIdWithAddress(id);
     if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new AppException('user-not-found');
     }
 
     if (dto.email) {
       const emailLower = dto.email.toLowerCase();
       const existing = await this.findByEmail(emailLower);
       if (existing && existing.id !== id) {
-        throw new ConflictException('Email já está em uso');
+        throw new AppException('email-already-taken');
       }
     }
 
@@ -295,7 +296,7 @@ export class UsersService {
   async toggleActive(id: string): Promise<User> {
     const user = await this.findById(id);
     if (!user || user.delete) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new AppException('user-not-found');
     }
 
     return this.prisma.user.update({
@@ -307,7 +308,7 @@ export class UsersService {
   async softDelete(id: string): Promise<void> {
     const user = await this.findById(id);
     if (!user || user.delete) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new AppException('user-not-found');
     }
 
     await this.prisma.user.update({

@@ -1,4 +1,3 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { SellersController } from './sellers.controller';
 import { SellersService } from './sellers.service';
@@ -52,7 +51,7 @@ describe('SellersController', () => {
           { name: 'Seller', email: 'seller@test.com', password: '123456' },
           makeReq(managerJwt),
         ),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -68,7 +67,7 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear listagem para nao-admin', async () => {
-      await expect(controller.findAll({}, makeReq(managerJwt))).rejects.toThrow(ForbiddenException);
+      await expect(controller.findAll({}, makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -98,9 +97,7 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear acesso para nao-admin', async () => {
-      await expect(controller.findOne('seller-1', makeReq(managerJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(controller.findOne('seller-1', makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -117,7 +114,7 @@ describe('SellersController', () => {
     it('deve bloquear update para nao-admin', async () => {
       await expect(
         controller.update('seller-1', { name: 'Novo Nome' }, makeReq(managerJwt)),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -132,9 +129,7 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear delete para nao-admin', async () => {
-      await expect(controller.remove('seller-1', makeReq(managerJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(controller.remove('seller-1', makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -149,9 +144,7 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear toggle para nao-admin', async () => {
-      await expect(controller.toggle('seller-1', makeReq(managerJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(controller.toggle('seller-1', makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 });

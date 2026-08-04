@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { UserDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id do usuário"),
-});
-
-export type ToggleUserInput = z.infer<typeof schema>;
+import {
+  toggleUserInputSchema,
+  type ToggleUserInput,
+} from "@/schemas/users/toggle-user.schema";
 
 /**
  * `PATCH /v1/users/:id/toggle` — Ativa/desativa um usuário (admin).
@@ -21,7 +18,7 @@ export async function toggleUser(
 ): Promise<ActionResult<UserDto>> {
   return executeAction({
     input,
-    schema,
+    schema: toggleUserInputSchema,
     auth: "required",
     successMessage: "Usuário atualizado.",
     revalidateTags: ["users"],

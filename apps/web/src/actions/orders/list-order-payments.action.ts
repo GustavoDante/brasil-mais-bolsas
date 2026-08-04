@@ -1,18 +1,12 @@
 "use server";
 
-import { OrderPaymentsQuerySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PaymentDto } from "@/lib/api/dto";
-
-const schema = OrderPaymentsQuerySchema;
-
-export type ListOrderPaymentsInput = z.infer<typeof schema>;
+import {
+  listOrderPaymentsInputSchema,
+  type ListOrderPaymentsInput,
+} from "@/schemas/orders/list-order-payments.schema";
 
 /**
  * `GET /v1/order/payments` — Lista os pagamentos de um pedido.
@@ -24,7 +18,7 @@ export async function listOrderPayments(
 ): Promise<ActionResult<PaymentDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listOrderPaymentsInputSchema,
     auth: "required",
     run: ({ order_id }, { token }) =>
       apiRequest<{ ok: boolean; payments: PaymentDto[] }>("/order/payments", {

@@ -100,8 +100,14 @@ revalidateTag(cacheTags.scholarships);
 ## Erros
 
 Tudo que sai do cliente HTTP vira `ApiError` (`status`, `kind`, `body`), inclusive rede e
-timeout. Para exibir ao usuário use `toUserMessage(error)`, que já trata 401/403/404/429 e
-aproveita o `userMessage` em português quando a API envia.
+timeout. Para exibir ao usuário use `toUserMessage(error)`.
+
+O corpo de erro da API é sempre
+`{ ok: false, code, message, statusCode, timestamp, path, fieldErrors? }`, e a `message` já
+vem em pt-BR pronta para a tela — o texto de cada erro é definido em
+`packages/contracts/src/errors.ts`, do lado do `code`. `toUserMessage` só repassa; ele tem
+texto próprio apenas para rede, timeout e resposta que não veio da nossa API (um 502 de
+proxy, por exemplo). Não adicione tradução de código aqui.
 
 ## Migrar uma página de mock para API
 

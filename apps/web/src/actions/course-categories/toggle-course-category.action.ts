@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da categoria"),
-});
-
-export type ToggleCourseCategoryInput = z.infer<typeof schema>;
+import {
+  toggleCourseCategoryInputSchema,
+  type ToggleCourseCategoryInput,
+} from "@/schemas/course-categories/toggle-course-category.schema";
 
 /**
  * `PATCH /v1/course-categories/:id/toggle` — Ativa/desativa uma categoria de curso (admin).
@@ -20,7 +17,7 @@ export async function toggleCourseCategory(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: toggleCourseCategoryInputSchema,
     auth: "required",
     successMessage: "Categoria atualizada.",
     revalidateTags: ["course-categories"],

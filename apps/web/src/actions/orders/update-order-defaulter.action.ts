@@ -1,17 +1,11 @@
 "use server";
 
-import { UpdateOrderDefaulterSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = UpdateOrderDefaulterSchema;
-
-export type UpdateOrderDefaulterInput = z.infer<typeof schema>;
+import {
+  updateOrderDefaulterInputSchema,
+  type UpdateOrderDefaulterInput,
+} from "@/schemas/orders/update-order-defaulter.schema";
 
 /**
  * `POST /v1/order/update-defaulter` — Marca/desmarca um pedido como inadimplente (admin ou manager).
@@ -23,7 +17,7 @@ export async function updateOrderDefaulter(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: updateOrderDefaulterInputSchema,
     auth: "required",
     successMessage: "Situação de inadimplência atualizada.",
     revalidateTags: ["orders"],

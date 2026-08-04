@@ -1,19 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalText,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { InstitutionDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  term: zOptionalText(),
-});
-
-export type SearchInstitutionsInput = z.infer<typeof schema>;
+import {
+  searchInstitutionsInputSchema,
+  type SearchInstitutionsInput,
+} from "@/schemas/institutions/search-institutions.schema";
 
 /**
  * `GET /v1/institutions/search` — Busca instituições por nome.
@@ -25,7 +18,7 @@ export async function searchInstitutions(
 ): Promise<ActionResult<InstitutionDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: searchInstitutionsInputSchema,
     auth: "required",
     run: ({ term }, { token }) =>
       apiRequest<{ institutions: InstitutionDto[] }>("/institutions/search", {

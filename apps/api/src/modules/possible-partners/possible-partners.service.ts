@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Prisma } from '@repo/db';
 import {
   CreatePossiblePartnerCallDto,
   CreatePossiblePartnerDto,
 } from './dto/possible-partners.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const possiblePartnerInclude = {
   calls: {
@@ -29,7 +30,7 @@ export class PossiblePartnersService {
     });
 
     if (existing) {
-      throw new BadRequestException('duplicated-data');
+      throw new AppException('duplicated-data');
     }
 
     const data: Prisma.PossiblePartnerUncheckedCreateInput = {
@@ -63,7 +64,7 @@ export class PossiblePartnersService {
     });
 
     if (!possiblePartner || possiblePartner.delete) {
-      throw new NotFoundException('possible-partner-not-found');
+      throw new AppException('possible-partner-not-found');
     }
 
     return possiblePartner;

@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -33,6 +32,7 @@ import {
   UpdateScholarshipDto,
 } from './dto/scholarships.dto';
 import { ScholarshipsService } from './scholarships.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 export interface AuthenticatedRequest {
   user: {
@@ -58,7 +58,7 @@ export class ScholarshipsController {
     @Body() dto: CreateScholarshipDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<ScholarshipResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const scholarship = await this.scholarshipsService.create(dto);
     return {
       ok: true,
@@ -166,7 +166,7 @@ export class ScholarshipsController {
     @Query() query: ScholarshipListQueryDto,
   ): Promise<ScholarshipListResponseDto> {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     const scholarships = await this.scholarshipsService.listBackoffice(req.user, query);
     return { ok: true, scholarships: scholarships as unknown as ScholarshipItemDto[] };
@@ -199,7 +199,7 @@ export class ScholarshipsController {
   @ApiOperation({ summary: 'Contagem de alunos matriculados na bolsa (Admin)' })
   @ApiParam({ name: 'id', description: 'ID da bolsa' })
   async getStudentsCount(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const students_count = await this.scholarshipsService.getStudentsCount(id);
     return { ok: true, students_count };
   }
@@ -212,7 +212,7 @@ export class ScholarshipsController {
     @Body() dto: ChangeScholarshipOrderDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const order = await this.scholarshipsService.changeOrderScholarship(dto);
     return { ok: true, order };
   }
@@ -235,7 +235,7 @@ export class ScholarshipsController {
     @Body() dto: CreateNewScholarshipValueDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<ScholarshipResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     // Desativar a antiga
     await this.scholarshipsService.update(dto.scholarship_id, { active: false });
     // Criar a nova
@@ -279,7 +279,7 @@ export class ScholarshipsController {
     @Body() dto: UpdateScholarshipDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<ScholarshipResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.scholarshipsService.update(id, dto);
     return { ok: true, message: 'scholarship-updated' };
   }
@@ -290,7 +290,7 @@ export class ScholarshipsController {
   @ApiOperation({ summary: 'Remover bolsa (Soft Delete, Admin)' })
   @ApiParam({ name: 'id', description: 'ID da bolsa' })
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.scholarshipsService.softDelete(id);
     return { ok: true, message: 'scholarship-deleted' };
   }
@@ -301,7 +301,7 @@ export class ScholarshipsController {
   @ApiOperation({ summary: 'Ativar/Desativar bolsa (Admin)' })
   @ApiParam({ name: 'id', description: 'ID da bolsa' })
   async toggleActive(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.scholarshipsService.toggleActive(id);
     return { ok: true, message: 'scholarship-toggled' };
   }

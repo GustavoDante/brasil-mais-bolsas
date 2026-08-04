@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { SellerDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id do vendedor"),
-});
-
-export type GetSellerInput = z.infer<typeof schema>;
+import {
+  getSellerInputSchema,
+  type GetSellerInput,
+} from "@/schemas/sellers/get-seller.schema";
 
 /**
  * `GET /v1/sellers/id/:id` — Busca um vendedor pelo id.
@@ -21,7 +18,7 @@ export async function getSeller(
 ): Promise<ActionResult<SellerDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getSellerInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; seller: SellerDto }>(

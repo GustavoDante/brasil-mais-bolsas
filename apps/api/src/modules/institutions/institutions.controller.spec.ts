@@ -1,8 +1,8 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { UploadedFileData } from '../../common/types/uploaded-file.type';
 import { InstitutionsController } from './institutions.controller';
 import { InstitutionsService } from './institutions.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const adminJwt = { userId: 'admin-id', email: 'admin@test.com', type: 'admin' };
 const userJwt = { userId: 'user-id-1', email: 'user@test.com', type: 'user' };
@@ -75,9 +75,9 @@ describe('InstitutionsController', () => {
       expect(res.institution.id).toBe('1');
     });
 
-    it('deve lancar NotFoundException se nao existir', async () => {
+    it('deve lancar AppException 404 se nao existir', async () => {
       service.findById.mockResolvedValue(null);
-      await expect(controller.findById('1')).rejects.toThrow(NotFoundException);
+      await expect(controller.findById('1')).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 
@@ -89,9 +89,7 @@ describe('InstitutionsController', () => {
     });
 
     it('deve barrar create para user', async () => {
-      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
 
     it('deve repassar o arquivo de imagem para o service no create', async () => {

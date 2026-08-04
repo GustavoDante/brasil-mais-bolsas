@@ -1,12 +1,11 @@
 "use server";
 
-import { submitContact, type SubmitContactInput } from "@/actions/contact";
-import {
-  createPossiblePartner,
-  type CreatePossiblePartnerInput,
-} from "@/actions/possible-partners";
+import { submitContact } from "@/actions/contact";
+import { createPossiblePartner } from "@/actions/possible-partners";
 import { formDataToObject, type ActionResult } from "@/actions/_core";
 import type { PossiblePartnerDto } from "@/lib/api/dto";
+import type { SubmitContactInput } from "@/schemas/contact/submit-contact.schema";
+import type { CreatePossiblePartnerInput } from "@/schemas/possible-partners/create-possible-partner.schema";
 
 /**
  * Adaptadores de formulário: convertem o `FormData` de `useActionState` na entrada

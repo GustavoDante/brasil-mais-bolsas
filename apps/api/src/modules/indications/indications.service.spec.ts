@@ -1,7 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { IndicationsService } from './indications.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 describe('IndicationsService', () => {
   let service: IndicationsService;
@@ -40,11 +40,11 @@ describe('IndicationsService', () => {
   });
 
   describe('create', () => {
-    it('should throw BadRequestException if duplicate found', async () => {
+    it('should throw AppException 400 if duplicate found', async () => {
       mockPrisma.indication.findFirst.mockResolvedValue({ id: '1' });
       await expect(
         service.create('u1', { name: 'n', email: 'e', cell: 'c', city: 'ct' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('should create indication if no duplicate', async () => {
@@ -56,7 +56,7 @@ describe('IndicationsService', () => {
   });
 
   describe('createCall', () => {
-    it('should throw NotFoundException if indication does not exist', async () => {
+    it('should throw AppException 404 if indication does not exist', async () => {
       mockPrisma.indication.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -64,7 +64,7 @@ describe('IndicationsService', () => {
           indication_id: 'missing',
           description: 'd',
         }),
-      ).rejects.toThrow('indication-not-found');
+      ).rejects.toMatchObject({ code: 'indication-not-found' });
     });
 
     it('should update previous calls if to_return is false', async () => {

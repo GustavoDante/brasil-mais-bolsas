@@ -2,9 +2,7 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -26,6 +24,7 @@ import type { JwtUser } from '../auth/strategies/jwt.strategy';
 import { AdminUpdateUserDto, CreateUserDto, UpdateUserDto } from './dto/users.dto';
 import { UserListResponseDto, UserResponseDto } from './dto/user-response.dto';
 import { UsersService } from './users.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type JwtRequest = Request & { user: JwtUser };
 
@@ -43,7 +42,7 @@ export class UsersController {
   @ApiResponse({ status: 200, type: UserListResponseDto })
   @ApiResponse({ status: 403, description: 'Acesso negado' })
   async findAll(@Req() req: JwtRequest): Promise<UserListResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException();
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const users = await this.usersService.findAll();
     return { users };
   }
@@ -55,7 +54,7 @@ export class UsersController {
   @ApiResponse({ status: 200, type: UserResponseDto })
   async getMe(@Req() req: JwtRequest): Promise<UserResponseDto> {
     const user = await this.usersService.findByIdWithAddress(req.user.userId);
-    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (!user) throw new AppException('user-not-found');
     const { password: _p, reset_password_token: _rt, reset_password_expires: _re, ...safe } = user;
     return safe;
   }
@@ -71,11 +70,11 @@ export class UsersController {
   async findOne(@Param('id') id: string, @Req() req: JwtRequest): Promise<UserResponseDto> {
     const targetId = req.user.type === 'admin' ? id : req.user.userId;
     if (req.user.type !== 'admin' && req.user.userId !== id) {
-      throw new ForbiddenException();
+      throw new AppException('forbidden');
     }
 
     const user = await this.usersService.findByIdWithAddress(targetId);
-    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (!user) throw new AppException('user-not-found');
     const { password: _p, reset_password_token: _rt, reset_password_expires: _re, ...safe } = user;
     return safe;
   }
@@ -89,7 +88,7 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Acesso negado' })
   @ApiResponse({ status: 409, description: 'Email já está em uso' })
   async create(@Body() dto: CreateUserDto, @Req() req: JwtRequest): Promise<UserResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException();
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const user = await this.usersService.create(dto);
     const { password: _p, reset_password_token: _rt, reset_password_expires: _re, ...safe } = user;
     return safe;
@@ -122,7 +121,7 @@ export class UsersController {
     @Body() dto: AdminUpdateUserDto,
     @Req() req: JwtRequest,
   ): Promise<UserResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException();
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const user = await this.usersService.update(id, dto);
     const { password: _p, reset_password_token: _rt, reset_password_expires: _re, ...safe } = user;
     return safe;
@@ -137,7 +136,7 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Acesso negado' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   async toggle(@Param('id') id: string, @Req() req: JwtRequest): Promise<UserResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException();
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const user = await this.usersService.toggleActive(id);
     const { password: _p, reset_password_token: _rt, reset_password_expires: _re, ...safe } = user;
     return safe;
@@ -152,7 +151,7 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Acesso negado' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   async remove(@Param('id') id: string, @Req() req: JwtRequest): Promise<{ message: string }> {
-    if (req.user.type !== 'admin') throw new ForbiddenException();
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.usersService.softDelete(id);
     return { message: 'Usuário removido com sucesso' };
   }

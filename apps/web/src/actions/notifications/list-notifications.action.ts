@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { NotificationDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListNotificationsInput = z.infer<typeof schema>;
+import { listNotificationsInputSchema } from "@/schemas/notifications/list-notifications.schema";
 
 /**
  * `GET /v1/notifications` — Lista as notificações do usuário autenticado (admin vê todas).
@@ -19,12 +15,12 @@ export async function listNotifications(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listNotificationsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; notifications: NotificationDto[] }>(
         "/notifications",
         { token, revalidate: false },
-      ).then((response) => response.notifications),
+      ).then((response) => response.notifications)
   });
 }

@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da instituição"),
-});
-
-export type ToggleInstitutionInput = z.infer<typeof schema>;
+import {
+  toggleInstitutionInputSchema,
+  type ToggleInstitutionInput,
+} from "@/schemas/institutions/toggle-institution.schema";
 
 /**
  * `PATCH /v1/institutions/:id/toggle` — Ativa/desativa uma instituição (admin).
@@ -20,7 +17,7 @@ export async function toggleInstitution(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: toggleInstitutionInputSchema,
     auth: "required",
     successMessage: "Instituição atualizada.",
     revalidateTags: ["institutions"],

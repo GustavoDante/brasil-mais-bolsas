@@ -1,17 +1,11 @@
 "use server";
 
-import { CreatePartnerSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = CreatePartnerSchema;
-
-export type CreatePartnerInput = z.infer<typeof schema>;
+import {
+  createPartnerInputSchema,
+  type CreatePartnerInput,
+} from "@/schemas/partners/create-partner.schema";
 
 /**
  * `POST /v1/partners` — Cria um parceiro (admin).
@@ -23,7 +17,7 @@ export async function createPartner(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: createPartnerInputSchema,
     auth: "required",
     successMessage: "Parceiro criado.",
     revalidateTags: ["partners"],

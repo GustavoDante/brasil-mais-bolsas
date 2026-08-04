@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -24,6 +23,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { JwtUser } from '../auth/strategies/jwt.strategy';
 import { CourseCategoriesService } from './course-categories.service';
 import { CreateCourseCategoryDto, UpdateCourseCategoryDto } from './dto/course-categories.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type JwtRequest = Request & { user: JwtUser };
 
@@ -69,7 +69,7 @@ export class CourseCategoriesController {
   @ApiBody({ type: CreateCourseCategoryDto })
   @ApiResponse({ status: 201, description: 'course-category-created' })
   async create(@Body() dto: CreateCourseCategoryDto, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.courseCategoriesService.create(dto);
     return { ok: true, message: 'course-category-created' };
   }
@@ -86,7 +86,7 @@ export class CourseCategoriesController {
     @Body() dto: UpdateCourseCategoryDto,
     @Req() req: JwtRequest,
   ) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.courseCategoriesService.update(id, dto);
     return { ok: true, message: 'course-category-updated' };
   }
@@ -98,7 +98,7 @@ export class CourseCategoriesController {
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'course-category-deleted' })
   async remove(@Param('id') id: string, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.courseCategoriesService.softDelete(id);
     return { ok: true, message: 'course-category-deleted' };
   }
@@ -110,7 +110,7 @@ export class CourseCategoriesController {
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'category-toggled' })
   async toggle(@Param('id') id: string, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.courseCategoriesService.toggleActive(id);
     return { ok: true, message: 'category-toggled' };
   }

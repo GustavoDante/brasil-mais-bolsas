@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScholarshipFullDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id da bolsa"),
-});
-
-export type GetScholarshipRenewInfoInput = z.infer<typeof schema>;
+import {
+  getScholarshipRenewInfoInputSchema,
+  type GetScholarshipRenewInfoInput,
+} from "@/schemas/scholarships/get-scholarship-renew-info.schema";
 
 /**
  * `GET /v1/scholarships/renew/:id` — Dados de renovação de uma bolsa.
@@ -21,7 +18,7 @@ export async function getScholarshipRenewInfo(
 ): Promise<ActionResult<ScholarshipFullDto | undefined>> {
   return executeAction({
     input,
-    schema,
+    schema: getScholarshipRenewInfoInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; scholarship?: ScholarshipFullDto }>(

@@ -7,6 +7,7 @@ import {
   RegisterAccessDto,
   UpdatePartnerDto,
 } from './dto/partners.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class PartnersService {
@@ -17,7 +18,7 @@ export class PartnersService {
       where: { code: dto.code, delete: false },
     });
     if (existing) {
-      throw new BadRequestException('Partner code already exists');
+      throw new AppException('partner-code-already-taken');
     }
 
     return this.prisma.partner.create({
@@ -127,11 +128,7 @@ export class PartnersService {
     });
 
     if (!partner) {
-      throw new BadRequestException({
-        ok: false,
-        message: 'partner-not-found',
-        userMessage: 'Usuário não encontrado',
-      });
+      throw new AppException('partner-not-found');
     }
 
     const UsersCount = partner.users.filter((u) => u._count.payments > 0).length;
@@ -148,7 +145,7 @@ export class PartnersService {
     const partner = await this.prisma.partner.findFirst({
       where: { id, delete: false },
     });
-    if (!partner) throw new BadRequestException('partner-not-found');
+    if (!partner) throw new AppException('partner-not-found');
     return partner;
   }
 

@@ -1,19 +1,14 @@
 "use server";
 
-import { SellerLoginSchema, SellersQuerySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { SellerDto } from "@/lib/api/dto";
+import {
+  loginSellerInputSchema,
+  type LoginSellerInput,
+} from "@/schemas/sellers/login-seller.schema";
 
 // Credenciais no corpo + recorte por periodo na query string.
-const schema = SellerLoginSchema.extend(SellersQuerySchema.shape);
-
-export type LoginSellerInput = z.infer<typeof schema>;
 
 /**
  * `POST /v1/sellers/login` — Autentica um vendedor por e-mail e senha.
@@ -23,7 +18,7 @@ export async function loginSeller(
 ): Promise<ActionResult<SellerDto>> {
   return executeAction({
     input,
-    schema,
+    schema: loginSellerInputSchema,
     auth: "none",
     run: ({ email, password, startDate, endDate }) =>
       apiRequest<{ ok: boolean; seller: SellerDto }>("/sellers/login", {

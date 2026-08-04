@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScholarshipFullDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListScholarshipsInput = z.infer<typeof schema>;
+import { listScholarshipsInputSchema } from "@/schemas/scholarships/list-scholarships.schema";
 
 /**
  * `GET /v1/scholarships` — Lista as bolsas do backoffice (admin/manager).
@@ -19,12 +15,12 @@ export async function listScholarships(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listScholarshipsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; scholarships: ScholarshipFullDto[] }>(
         "/scholarships",
         { token },
-      ).then((response) => response.scholarships),
+      ).then((response) => response.scholarships)
   });
 }

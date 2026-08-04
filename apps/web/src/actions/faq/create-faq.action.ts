@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateFaqSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { FaqDto } from "@/lib/api/dto";
-
-const schema = CreateFaqSchema;
-
-export type CreateFaqInput = z.infer<typeof schema>;
+import {
+  createFaqInputSchema,
+  type CreateFaqInput,
+} from "@/schemas/faq/create-faq.schema";
 
 /**
  * `POST /v1/faq` — Cria uma pergunta frequente (admin).
@@ -24,7 +18,7 @@ export async function createFaq(
 ): Promise<ActionResult<FaqDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createFaqInputSchema,
     auth: "required",
     successMessage: "Pergunta criada.",
     revalidateTags: ["faq"],

@@ -1,4 +1,3 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { AsaasService } from './asaas.service';
@@ -103,6 +102,6 @@ describe('AsaasService', () => {
         value: 100,
         dueDate: '2026-05-14',
       }),
-    ).rejects.toThrow(ServiceUnavailableException);
+    ).rejects.toMatchObject({ httpStatus: 503 });
   });
 });

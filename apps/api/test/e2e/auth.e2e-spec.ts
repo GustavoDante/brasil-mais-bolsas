@@ -1,6 +1,7 @@
-import { BadRequestException, type INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { authServiceMock, createTestApp, validRegisterPayload } from './shared';
+import { AppException } from '../../src/common/exceptions/app.exception';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -170,7 +171,7 @@ describe('Auth (e2e)', () => {
 
     it('deve propagar 400 quando o service recusa o token', async () => {
       authServiceMock.resetPassword.mockRejectedValueOnce(
-        new BadRequestException('token-not-found-or-expired'),
+        new AppException('token-not-found-or-expired'),
       );
 
       await request(app.getHttpServer())

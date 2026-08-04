@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -15,6 +14,7 @@ import type { AuthenticatedRequest } from '../../common/types/authenticated-requ
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateIndicationCallDto, CreateIndicationDto } from './dto/indications.dto';
 import { IndicationsService } from './indications.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @ApiTags('Indications')
 @Controller('indications')
@@ -38,7 +38,7 @@ export class IndicationsController {
   @ApiOperation({ summary: 'Lista todas as indicações (Apenas Admin)' })
   async findAll(@Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     const indications = await this.indicationsService.findAll();
     return { ok: true, indications };
@@ -62,7 +62,7 @@ export class IndicationsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     const call = await this.indicationsService.createCall(req.user.userId, createCallDto);
     return { ok: true, message: 'indication-call-created', call };
@@ -75,7 +75,7 @@ export class IndicationsController {
   @ApiOperation({ summary: 'Remove um registro de chamada (Apenas Admin)' })
   async removeCall(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     await this.indicationsService.removeCall(id);
     return { ok: true, message: 'indication-call-deleted' };

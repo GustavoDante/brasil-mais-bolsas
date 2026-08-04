@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id do usuário"),
-});
-
-export type DeleteUserInput = z.infer<typeof schema>;
+import {
+  deleteUserInputSchema,
+  type DeleteUserInput,
+} from "@/schemas/users/delete-user.schema";
 
 /**
  * `DELETE /v1/users/:id` — Remove um usuário (admin).
@@ -20,7 +17,7 @@ export async function deleteUser(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteUserInputSchema,
     auth: "required",
     successMessage: "Usuário removido.",
     revalidateTags: ["users"],

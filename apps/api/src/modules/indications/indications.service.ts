@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CreateIndicationCallDto, CreateIndicationDto } from './dto/indications.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class IndicationsService {
@@ -17,7 +18,7 @@ export class IndicationsService {
     });
 
     if (existing) {
-      throw new BadRequestException('duplicated-data');
+      throw new AppException('duplicated-data');
     }
 
     return this.prisma.indication.create({
@@ -52,7 +53,7 @@ export class IndicationsService {
     });
 
     if (!indication || indication.delete) {
-      throw new NotFoundException('indication-not-found');
+      throw new AppException('indication-not-found');
     }
 
     return indication;

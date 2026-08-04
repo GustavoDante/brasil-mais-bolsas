@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Prisma } from '@repo/db';
 import type { CreateCourseCategoryDto, UpdateCourseCategoryDto } from './dto/course-categories.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class CourseCategoriesService {
@@ -35,7 +36,7 @@ export class CourseCategoriesService {
     const category = await this.prisma.courseCategory.findUnique({
       where: { id, delete: false },
     });
-    if (!category) throw new NotFoundException('course-category-not-found');
+    if (!category) throw new AppException('course-category-not-found');
     return category;
   }
 
@@ -43,7 +44,7 @@ export class CourseCategoriesService {
     const category = await this.prisma.courseCategory.findFirst({
       where: { old_id: oldId, delete: false },
     });
-    if (!category) throw new NotFoundException('course-category-not-found');
+    if (!category) throw new AppException('course-category-not-found');
     return category;
   }
 
@@ -51,7 +52,7 @@ export class CourseCategoriesService {
     const category = await this.prisma.courseCategory.findUnique({
       where: { id, delete: false },
     });
-    if (!category) throw new NotFoundException('course-category-not-found');
+    if (!category) throw new AppException('course-category-not-found');
 
     const updateData: Prisma.CourseCategoryUpdateInput = {};
     if (dto.name) updateData.name = dto.name;
@@ -67,7 +68,7 @@ export class CourseCategoriesService {
     const category = await this.prisma.courseCategory.findUnique({
       where: { id, delete: false },
     });
-    if (!category) throw new NotFoundException('course-category-not-found');
+    if (!category) throw new AppException('course-category-not-found');
 
     return this.prisma.courseCategory.update({
       where: { id },
@@ -79,7 +80,7 @@ export class CourseCategoriesService {
     const category = await this.prisma.courseCategory.findUnique({
       where: { id, delete: false },
     });
-    if (!category) throw new NotFoundException('course-category-not-found');
+    if (!category) throw new AppException('course-category-not-found');
 
     return this.prisma.courseCategory.update({
       where: { id },

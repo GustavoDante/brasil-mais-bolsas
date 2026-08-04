@@ -1,7 +1,8 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { ContactType } from '@repo/contracts';
 import { MailService } from '../../integrations/mail/mail.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 /**
  * Para onde cada origem de contato é encaminhada, e como ela aparece no e-mail.
@@ -40,7 +41,7 @@ export class ContactService {
 
     if (!to) {
       this.logger.error('Contato nao encaminhado: nenhuma caixa de destino configurada');
-      throw new ServiceUnavailableException('contact-not-configured');
+      throw new AppException('contact-not-configured');
     }
 
     const result = await this.mailService.sendContact(to, {
@@ -59,7 +60,7 @@ export class ContactService {
       this.logger.error(
         `Contato de ${params.email} nao entregue: ${result.reason ?? 'motivo desconhecido'}`,
       );
-      throw new ServiceUnavailableException('contact-not-delivered');
+      throw new AppException('contact-not-delivered');
     }
 
     return { ok: true, message: 'contact-sent' };

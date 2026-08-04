@@ -1,8 +1,8 @@
-import { ForbiddenException } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { Test } from '@nestjs/testing';
 import { JobsController } from './jobs.controller';
 import { OrdersRenewalService } from './orders-renewal/orders-renewal.service';
+import { AppException } from '../common/exceptions/app.exception';
 
 const adminRequest = { user: { userId: 'admin-1', email: 'admin@test.com', type: 'admin' } };
 const managerRequest = { user: { userId: 'manager-1', email: 'm@test.com', type: 'manager' } };
@@ -63,7 +63,7 @@ describe('JobsController', () => {
     });
 
     it('deve negar acesso para quem nao e admin', () => {
-      expect(() => controller.list(managerRequest)).toThrow(ForbiddenException);
+      expect(() => controller.list(managerRequest)).toThrow(AppException);
     });
   });
 
@@ -76,7 +76,7 @@ describe('JobsController', () => {
     });
 
     it('deve negar execucao para quem nao e admin', async () => {
-      await expect(controller.runOrdersRenewal(managerRequest)).rejects.toThrow(ForbiddenException);
+      await expect(controller.runOrdersRenewal(managerRequest)).rejects.toMatchObject({ httpStatus: 403 });
       expect(ordersRenewalService.run).not.toHaveBeenCalled();
     });
   });

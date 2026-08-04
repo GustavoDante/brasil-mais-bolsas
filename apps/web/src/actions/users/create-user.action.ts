@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateUserSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { UserDto } from "@/lib/api/dto";
-
-const schema = CreateUserSchema;
-
-export type CreateUserInput = z.infer<typeof schema>;
+import {
+  createUserInputSchema,
+  type CreateUserInput,
+} from "@/schemas/users/create-user.schema";
 
 /**
  * `POST /v1/users` — Cria um usuário com endereço (admin).
@@ -24,7 +18,7 @@ export async function createUser(
 ): Promise<ActionResult<UserDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createUserInputSchema,
     auth: "required",
     successMessage: "Usuário criado.",
     revalidateTags: ["users"],

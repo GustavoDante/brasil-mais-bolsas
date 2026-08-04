@@ -1,20 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalDateString,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PartnerDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  startDate: zOptionalDateString(),
-  endDate: zOptionalDateString(),
-});
-
-export type ListPartnersInput = z.infer<typeof schema>;
+import {
+  listPartnersInputSchema,
+  type ListPartnersInput,
+} from "@/schemas/partners/list-partners.schema";
 
 /**
  * `GET /v1/partners` — Lista os parceiros, opcionalmente filtrando acessos por período.
@@ -26,7 +18,7 @@ export async function listPartners(
 ): Promise<ActionResult<PartnerDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listPartnersInputSchema,
     auth: "required",
     run: ({ startDate, endDate }, { token }) =>
       apiRequest<{ ok: boolean; partners: PartnerDto[] }>("/partners", {

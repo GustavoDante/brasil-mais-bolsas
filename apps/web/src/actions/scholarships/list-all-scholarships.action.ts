@@ -1,27 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalText,
-  zStringArray,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScholarshipFullDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  alreadyListed: zStringArray(),
-  type: zOptionalText(),
-  institution: zOptionalText(),
-  city: zOptionalText(),
-  category: zOptionalText(),
-  course: zOptionalText(),
-  showExpired: zOptionalText(),
-  showInativas: zOptionalText(),
-});
-
-export type ListAllScholarshipsInput = z.infer<typeof schema>;
+import {
+  listAllScholarshipsInputSchema,
+  type ListAllScholarshipsInput,
+} from "@/schemas/scholarships/list-all-scholarships.schema";
 
 /**
  * `GET /v1/scholarships/list/all` — Lista todas as bolsas com os filtros do backoffice.
@@ -33,7 +18,7 @@ export async function listAllScholarships(
 ): Promise<ActionResult<ScholarshipFullDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listAllScholarshipsInputSchema,
     auth: "required",
     run: (
       {

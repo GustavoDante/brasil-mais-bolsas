@@ -1,8 +1,8 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { DurationType } from '@repo/db';
 import { CoursesController } from './courses.controller';
 import { CoursesService } from './courses.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const adminJwt = { userId: 'admin-id', email: 'admin@test.com', type: 'admin' };
 const userJwt = { userId: 'user-id-1', email: 'user@test.com', type: 'user' };
@@ -52,8 +52,8 @@ describe('CoursesController', () => {
     });
 
     it('deve buscar por id com falha se inexistente', async () => {
-      service.findById.mockRejectedValue(new NotFoundException());
-      await expect(controller.findById('1')).rejects.toThrow(NotFoundException);
+      service.findById.mockRejectedValue(new AppException('not-found'));
+      await expect(controller.findById('1')).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 
@@ -64,7 +64,7 @@ describe('CoursesController', () => {
           { name: 'C', duration: 1, duration_type: DurationType.MONTHS, category_id: '1' },
           makeReq(userJwt),
         ),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toMatchObject({ httpStatus: 403 });
     });
 
     it('deve permitir criacao se for admin', async () => {

@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CallsService } from './calls.service';
@@ -60,13 +59,13 @@ describe('CallsService', () => {
 
     await expect(
       service.create('admin-1', { receiver_id: 'user-1', description: 'Descrição' }),
-    ).rejects.toThrow(BadRequestException);
+    ).rejects.toMatchObject({ httpStatus: 400 });
   });
 
   it('deve buscar chamado por id e lançar erro quando não existir', async () => {
     prisma.call.findUnique.mockResolvedValue(null);
 
-    await expect(service.findOne('call-1')).rejects.toThrow(NotFoundException);
+    await expect(service.findOne('call-1')).rejects.toMatchObject({ httpStatus: 404 });
   });
 
   it('deve remover chamado existente', async () => {

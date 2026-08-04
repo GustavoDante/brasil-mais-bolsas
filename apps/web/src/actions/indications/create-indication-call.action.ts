@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateIndicationCallSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { IndicationCallDto } from "@/lib/api/dto";
-
-const schema = CreateIndicationCallSchema;
-
-export type CreateIndicationCallInput = z.infer<typeof schema>;
+import {
+  createIndicationCallInputSchema,
+  type CreateIndicationCallInput,
+} from "@/schemas/indications/create-indication-call.schema";
 
 /**
  * `POST /v1/indications/call` — Registra uma ligação feita para uma indicação (admin).
@@ -24,7 +18,7 @@ export async function createIndicationCall(
 ): Promise<ActionResult<IndicationCallDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createIndicationCallInputSchema,
     auth: "required",
     successMessage: "Ligação registrada.",
     revalidateTags: ["indications"],

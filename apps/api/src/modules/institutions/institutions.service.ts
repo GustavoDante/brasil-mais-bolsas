@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { UploadedFileData } from '../../common/types/uploaded-file.type';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Prisma } from '@repo/db';
 import { StorageService } from '../../integrations/storage/storage.service';
 import { UploadsService } from '../uploads/uploads.service';
 import type { CreateInstitutionDto, UpdateInstitutionDto } from './dto/institutions.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class InstitutionsService {
@@ -174,7 +175,7 @@ export class InstitutionsService {
     const institution = await this.prisma.institution.findUnique({ where: { id } });
 
     if (!institution || institution.delete) {
-      throw new NotFoundException('Institution not found');
+      throw new AppException('institution-not-found');
     }
 
     const updateData: Prisma.InstitutionUpdateInput = { ...dto };
@@ -220,7 +221,7 @@ export class InstitutionsService {
     const institution = await this.prisma.institution.findUnique({ where: { id } });
 
     if (!institution || institution.delete) {
-      throw new NotFoundException('Institution not found');
+      throw new AppException('institution-not-found');
     }
 
     return this.prisma.institution.update({
@@ -233,7 +234,7 @@ export class InstitutionsService {
     const institution = await this.prisma.institution.findUnique({ where: { id } });
 
     if (!institution || institution.delete) {
-      throw new NotFoundException('Institution not found');
+      throw new AppException('institution-not-found');
     }
 
     return this.prisma.institution.update({

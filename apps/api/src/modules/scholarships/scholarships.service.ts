@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma, ScholarshipType } from '@repo/db';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import {
@@ -7,6 +7,7 @@ import {
   ScholarshipListQueryDto,
   UpdateScholarshipDto,
 } from './dto/scholarships.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class ScholarshipsService {
@@ -17,14 +18,11 @@ export class ScholarshipsService {
       where: { id: createDto.institution_id },
     });
     if (!institution || institution.delete)
-      throw new BadRequestException({
-        message: 'invalid-institution',
-        userMessage: 'Instituição inválida',
-      });
+      throw new AppException('invalid-institution');
 
     const course = await this.prisma.course.findUnique({ where: { id: createDto.course_id } });
     if (!course || course.delete)
-      throw new BadRequestException({ message: 'invalid-course', userMessage: 'Course inválido' });
+      throw new AppException('invalid-course');
 
     const final_price = Number(
       (createDto.full_price - (createDto.full_price * createDto.discount) / 100).toFixed(2),
@@ -126,7 +124,7 @@ export class ScholarshipsService {
       where: { id },
       include: { course: true, institution: true },
     });
-    if (!scholarship || scholarship.delete) throw new NotFoundException('Scholarship not found');
+    if (!scholarship || scholarship.delete) throw new AppException('scholarship-not-found');
     return scholarship;
   }
 
@@ -135,7 +133,7 @@ export class ScholarshipsService {
       where: { old_id },
       include: { course: true, institution: true },
     });
-    if (!scholarship) throw new NotFoundException('Scholarship not found');
+    if (!scholarship) throw new AppException('scholarship-not-found');
     return scholarship;
   }
 
@@ -160,7 +158,7 @@ export class ScholarshipsService {
 
   async update(id: string, updateDto: UpdateScholarshipDto) {
     const scholarship = await this.prisma.scholarship.findUnique({ where: { id } });
-    if (!scholarship || scholarship.delete) throw new NotFoundException('Scholarship not found');
+    if (!scholarship || scholarship.delete) throw new AppException('scholarship-not-found');
 
     const updateData: Prisma.ScholarshipUpdateInput = {};
 
@@ -219,7 +217,7 @@ export class ScholarshipsService {
 
   async softDelete(id: string) {
     const scholarship = await this.prisma.scholarship.findUnique({ where: { id } });
-    if (!scholarship || scholarship.delete) throw new NotFoundException('Scholarship not found');
+    if (!scholarship || scholarship.delete) throw new AppException('scholarship-not-found');
     return this.prisma.scholarship.update({
       where: { id },
       data: { delete: true, active: false },
@@ -230,7 +228,7 @@ export class ScholarshipsService {
     const scholarship = await this.prisma.scholarship.findUnique({
       where: { id, delete: false },
     });
-    if (!scholarship) throw new NotFoundException('Scholarship not found');
+    if (!scholarship) throw new AppException('scholarship-not-found');
     return this.prisma.scholarship.update({
       where: { id },
       data: { active: !scholarship.active },
@@ -240,19 +238,13 @@ export class ScholarshipsService {
   async changeOrderScholarship(dto: ChangeScholarshipOrderDto) {
     const order = await this.prisma.order.findUnique({ where: { id: dto.order_id } });
     if (!order)
-      throw new BadRequestException({
-        message: 'order-not-found',
-        userMessage: 'Pedido não encontrado',
-      });
+      throw new AppException('invalid-order');
 
     const scholarship = await this.prisma.scholarship.findUnique({
       where: { id: dto.new_scholarship },
     });
     if (!scholarship)
-      throw new BadRequestException({
-        message: 'scholarship-not-found',
-        userMessage: 'Bolsa não encontrada',
-      });
+      throw new AppException('invalid-scholarship');
 
     await this.prisma.payment.updateMany({
       where: { order_id: order.id },

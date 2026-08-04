@@ -1,4 +1,3 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
@@ -50,6 +49,6 @@ describe('NotificationsController', () => {
         { title: 'Título', message: 'Mensagem', user_id: 'user-1' },
         makeReq(userJwt),
       ),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toMatchObject({ httpStatus: 403 });
   });
 });

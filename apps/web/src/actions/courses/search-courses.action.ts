@@ -1,19 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalText,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CourseDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  term: zOptionalText(),
-});
-
-export type SearchCoursesInput = z.infer<typeof schema>;
+import {
+  searchCoursesInputSchema,
+  type SearchCoursesInput,
+} from "@/schemas/courses/search-courses.schema";
 
 /**
  * `GET /v1/courses/search` — Busca cursos por nome.
@@ -25,7 +18,7 @@ export async function searchCourses(
 ): Promise<ActionResult<CourseDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: searchCoursesInputSchema,
     auth: "required",
     run: ({ term }, { token }) =>
       apiRequest<{ ok: boolean; courses: CourseDto[] }>("/courses/search", {

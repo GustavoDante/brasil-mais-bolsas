@@ -1,11 +1,14 @@
 /**
  * Verificação do tratamento de erro das actions.
  *
- * Alimenta `normalizeError` com os formatos que o `AllExceptionsFilter` da API realmente
- * produz e confere o `code`/`message` resultante. Não precisa da API no ar.
+ * Alimenta `normalizeError` com os corpos que o `AllExceptionsFilter` da API realmente
+ * produz — e também com os que ele NÃO produz (proxy, rede, exceção do próprio Next) —
+ * e confere o `code`/`message` resultante. Não precisa da API no ar.
  *
  * Uso: npx tsx scripts/check-action-errors.ts
  */
+import { ERROR_CATALOG } from "@repo/contracts";
+
 import { normalizeError } from "../src/actions/_core/action-error";
 import { ApiError } from "../src/lib/api/errors";
 
@@ -17,80 +20,92 @@ interface Scenario {
   expectFields?: string[];
 }
 
-/** Monta o corpo como o filtro global da API devolve. */
-function apiError(status: number, message: unknown): ApiError {
-  return new ApiError({
-    kind: "http",
-    status,
-    message: "erro",
-    body: {
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: "/v1/teste",
-      message,
-    },
-  });
+/** Monta o corpo exatamente como o filtro global da API o serializa. */
+function apiError(status: number, body: unknown): ApiError {
+  return new ApiError({ kind: "http", status, message: "erro", body });
+}
+
+function filterBody(code: keyof typeof ERROR_CATALOG, extra: object = {}) {
+  const { status, message } = ERROR_CATALOG[code];
+  return {
+    ok: false,
+    code,
+    message,
+    statusCode: status,
+    timestamp: new Date().toISOString(),
+    path: "/v1/teste",
+    ...extra,
+  };
 }
 
 const scenarios: Scenario[] = [
   {
-    label: "403 ForbiddenException('unauthorized')",
-    error: apiError(403, { message: "unauthorized", error: "Forbidden", statusCode: 403 }),
-    expectCode: "unauthorized",
-    expectMessage: "Você não tem permissão para esta ação.",
-  },
-  {
-    label: "404 NotFoundException('user-not-found')",
-    error: apiError(404, { message: "user-not-found", error: "Not Found", statusCode: 404 }),
+    label: "404 AppException('user-not-found')",
+    error: apiError(404, filterBody("user-not-found")),
     expectCode: "user-not-found",
     expectMessage: "Usuário não encontrado.",
   },
   {
-    label: "400 BadRequestException com userMessage",
-    error: apiError(400, {
-      message: "invalid-institution",
-      userMessage: "Instituição inválida",
-    }),
-    expectCode: "invalid-institution",
-    expectMessage: "Instituição inválida",
+    label: "403 AppException('forbidden')",
+    error: apiError(403, filterBody("forbidden")),
+    expectCode: "forbidden",
+    expectMessage: "Você não tem permissão para esta ação.",
   },
   {
-    label: "400 ValidationPipe (class-validator)",
-    error: apiError(400, {
-      statusCode: 400,
-      message: [
-        "email must be an email",
-        "password must be longer than or equal to 6 characters",
-      ],
-      error: "Bad Request",
-    }),
+    label: "400 ZodValidationException com fieldErrors",
+    error: apiError(
+      400,
+      filterBody("validation-error", {
+        fieldErrors: {
+          email: ["E-mail inválido"],
+          password: ["A senha deve ter ao menos 6 caracteres"],
+        },
+      }),
+    ),
     expectCode: "validation-error",
     expectMessage: "Confira os campos destacados.",
     expectFields: ["email", "password"],
   },
   {
-    label: "401 sem corpo reconhecível",
-    error: apiError(401, { message: "Unauthorized", statusCode: 401 }),
-    expectCode: "unauthorized",
-    expectMessage: "Você não tem permissão para esta ação.",
+    label: "400 asaas-rejected (mensagem do gateway sobrepõe a do catálogo)",
+    error: apiError(400, filterBody("asaas-rejected", { message: "CPF inválido" })),
+    expectCode: "asaas-rejected",
+    expectMessage: "CPF inválido",
   },
   {
-    label: "429 ThrottlerException (texto técnico)",
-    error: apiError(429, { statusCode: 429, message: "ThrottlerException: Too Many Requests" }),
+    label: "429 too-many-requests",
+    error: apiError(429, filterBody("too-many-requests")),
     expectCode: "too-many-requests",
     expectMessage: "Muitas tentativas. Aguarde um minuto e tente novamente.",
   },
   {
-    label: "500 genérico",
-    error: apiError(500, "Erro interno do servidor"),
-    expectCode: "server-error",
+    label: "500 internal-error (nada da exceção original vaza)",
+    error: apiError(500, filterBody("internal-error")),
+    expectCode: "internal-error",
     expectMessage: "Tivemos um problema no servidor. Tente novamente em instantes.",
   },
   {
-    label: "código novo, ainda sem tradução",
-    error: apiError(404, { message: "algo-que-nao-mapeamos", statusCode: 404 }),
-    expectCode: "algo-que-nao-mapeamos",
-    expectMessage: "Registro não encontrado.",
+    // O proxy/balanceador devolve HTML ou um JSON que não é nosso: sem `code`, só o
+    // status é confiável. É o caminho que impede o usuário de ver uma tela em branco.
+    label: "502 do proxy, sem o corpo da nossa API",
+    error: apiError(502, "<html>502 Bad Gateway</html>"),
+    expectCode: "internal-error",
+    expectMessage: "Tivemos um problema no servidor. Tente novamente em instantes.",
+  },
+  {
+    label: "código que o web ainda não conhece (API mais nova)",
+    error: apiError(404, {
+      ok: false,
+      code: "algo-que-nao-existe-aqui",
+      message: "Mensagem que a API mandou.",
+      statusCode: 404,
+      timestamp: new Date().toISOString(),
+      path: "/v1/teste",
+    }),
+    // Cai no genérico do status, mas exibe o texto que veio da API — é isso que faz um
+    // frontend defasado continuar mostrando a mensagem certa.
+    expectCode: "not-found",
+    expectMessage: "Mensagem que a API mandou.",
   },
   {
     label: "falha de rede",

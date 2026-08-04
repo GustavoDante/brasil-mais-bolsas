@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { FaqDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id da pergunta"),
-});
-
-export type GetFaqInput = z.infer<typeof schema>;
+import {
+  getFaqInputSchema,
+  type GetFaqInput,
+} from "@/schemas/faq/get-faq.schema";
 
 /**
  * `GET /v1/faq/:id` — Busca uma pergunta pelo id.
@@ -19,7 +16,7 @@ export async function getFaq(
 ): Promise<ActionResult<FaqDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getFaqInputSchema,
     auth: "none",
     run: ({ id }) =>
       apiRequest<{ ok: boolean; faq: FaqDto }>(

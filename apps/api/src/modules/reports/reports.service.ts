@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Prisma } from '@repo/db';
 import { GeneralReportQueryDto, RenewalsReportQueryDto } from './dto/reports.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const studentReportInclude = {
   orders: {
@@ -364,7 +365,7 @@ export class ReportsService {
     });
 
     if (!order) {
-      throw new NotFoundException('order-not-found');
+      throw new AppException('order-not-found');
     }
 
     return order.payments;

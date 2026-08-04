@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id do vendedor"),
-});
-
-export type DeleteSellerInput = z.infer<typeof schema>;
+import {
+  deleteSellerInputSchema,
+  type DeleteSellerInput,
+} from "@/schemas/sellers/delete-seller.schema";
 
 /**
  * `DELETE /v1/sellers/:id` — Remove um vendedor (admin).
@@ -20,7 +17,7 @@ export async function deleteSeller(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteSellerInputSchema,
     auth: "required",
     successMessage: "Vendedor removido.",
     revalidateTags: ["sellers"],

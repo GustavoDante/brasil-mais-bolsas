@@ -1,4 +1,3 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PossiblePartnersController } from './possible-partners.controller';
 import { PossiblePartnersService } from './possible-partners.service';
@@ -58,7 +57,7 @@ describe('PossiblePartnersController', () => {
     });
 
     it('deve bloquear não-admin', async () => {
-      await expect(controller.findAll(makeReq(managerJwt))).rejects.toThrow(ForbiddenException);
+      await expect(controller.findAll(makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 

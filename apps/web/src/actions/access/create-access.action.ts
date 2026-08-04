@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateAccessSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { AccessDto } from "@/lib/api/dto";
-
-const schema = CreateAccessSchema;
-
-export type CreateAccessInput = z.infer<typeof schema>;
+import {
+  createAccessInputSchema,
+  type CreateAccessInput,
+} from "@/schemas/access/create-access.schema";
 
 /**
  * `POST /v1/access` — Registra um acesso para um parceiro.
@@ -24,7 +18,7 @@ export async function createAccess(
 ): Promise<ActionResult<AccessDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createAccessInputSchema,
     auth: "required",
     successMessage: "Acesso registrado.",
     revalidateTags: ["accesses"],

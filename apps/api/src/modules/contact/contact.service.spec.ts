@@ -1,4 +1,3 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { MailService } from '../../integrations/mail/mail.service';
@@ -79,7 +78,7 @@ describe('ContactService', () => {
     it('deve responder 503 quando nenhuma caixa estiver configurada', async () => {
       withEnv({});
 
-      await expect(service.submit(payload)).rejects.toThrow(ServiceUnavailableException);
+      await expect(service.submit(payload)).rejects.toMatchObject({ httpStatus: 503 });
       expect(mailService.sendContact).not.toHaveBeenCalled();
     });
 
@@ -87,7 +86,7 @@ describe('ContactService', () => {
       withEnv({ CONTACT_EMAIL_DEFAULT: 'suporte@bmb.com.br' });
       mailService.sendContact.mockResolvedValue({ sent: false, reason: 'mail-provider-error' });
 
-      await expect(service.submit(payload)).rejects.toThrow(ServiceUnavailableException);
+      await expect(service.submit(payload)).rejects.toMatchObject({ httpStatus: 503 });
     });
 
     it('deve ignorar caixa configurada só com espacos e usar a geral', async () => {

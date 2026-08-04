@@ -1,18 +1,12 @@
 "use server";
 
-import { GeneralReportQuerySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ReportRowDto } from "@/lib/api/dto";
-
-const schema = GeneralReportQuerySchema;
-
-export type GetGeneralReportInput = z.infer<typeof schema>;
+import {
+  getGeneralReportInputSchema,
+  type GetGeneralReportInput,
+} from "@/schemas/reports/get-general-report.schema";
 
 /**
  * `GET /v1/reports/general` — Relatório geral de pagamentos por instituição, curso e período.
@@ -24,7 +18,7 @@ export async function getGeneralReport(
 ): Promise<ActionResult<ReportRowDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: getGeneralReportInputSchema,
     auth: "required",
     run: ({ institution, course, start_date, end_date }, { token }) =>
       apiRequest<{ ok: boolean; payments: ReportRowDto[] }>(

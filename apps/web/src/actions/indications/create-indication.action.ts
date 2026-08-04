@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateIndicationSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { IndicationDto } from "@/lib/api/dto";
-
-const schema = CreateIndicationSchema;
-
-export type CreateIndicationInput = z.infer<typeof schema>;
+import {
+  createIndicationInputSchema,
+  type CreateIndicationInput,
+} from "@/schemas/indications/create-indication.schema";
 
 /**
  * `POST /v1/indications` — Cria uma indicação em nome do usuário autenticado.
@@ -24,7 +18,7 @@ export async function createIndication(
 ): Promise<ActionResult<IndicationDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createIndicationInputSchema,
     auth: "required",
     successMessage: "Indicação enviada.",
     revalidateTags: ["indications"],

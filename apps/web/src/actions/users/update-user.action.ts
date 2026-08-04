@@ -1,19 +1,12 @@
 "use server";
 
-import { AdminUpdateUserSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { UserDto } from "@/lib/api/dto";
-
-const schema = AdminUpdateUserSchema.extend({ id: zId("Informe o id do usuário") });
-
-export type UpdateUserInput = z.infer<typeof schema>;
+import {
+  updateUserInputSchema,
+  type UpdateUserInput,
+} from "@/schemas/users/update-user.schema";
 
 /**
  * `PUT /v1/users/:id` — Atualiza um usuário (admin), incluindo tipo e situação.
@@ -25,7 +18,7 @@ export async function updateUser(
 ): Promise<ActionResult<UserDto>> {
   return executeAction({
     input,
-    schema,
+    schema: updateUserInputSchema,
     auth: "required",
     successMessage: "Usuário atualizado.",
     revalidateTags: ["users"],

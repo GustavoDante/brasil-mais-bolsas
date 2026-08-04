@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScheduledJobDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListScheduledJobsInput = z.infer<typeof schema>;
+import { listScheduledJobsInputSchema } from "@/schemas/jobs/list-scheduled-jobs.schema";
 
 /**
  * `GET /v1/jobs` — Lista as tarefas agendadas e a próxima execução (admin).
@@ -19,12 +15,12 @@ export async function listScheduledJobs(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listScheduledJobsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; jobs: ScheduledJobDto[] }>("/jobs", {
         token,
-        revalidate: false,
-      }).then((response) => response.jobs),
+        revalidate: false
+      }).then((response) => response.jobs)
   });
 }

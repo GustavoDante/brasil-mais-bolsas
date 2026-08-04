@@ -1,4 +1,3 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { FaqController } from './faq.controller';
 import { FaqService } from './faq.service';
@@ -43,6 +42,6 @@ describe('FaqController', () => {
   it('deve bloquear criação para user comum', async () => {
     await expect(
       controller.create({ question: 'Q?', answer: 'A' }, makeReq(userJwt)),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toMatchObject({ httpStatus: 403 });
   });
 });

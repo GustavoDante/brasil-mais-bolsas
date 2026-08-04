@@ -1,17 +1,11 @@
 "use server";
 
-import { CreateOrderSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = CreateOrderSchema;
-
-export type CreateOrderInput = z.infer<typeof schema>;
+import {
+  createOrderInputSchema,
+  type CreateOrderInput,
+} from "@/schemas/orders/create-order.schema";
 
 /**
  * `POST /v1/order` — Cria um pedido para uma bolsa.
@@ -23,7 +17,7 @@ export async function createOrder(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: createOrderInputSchema,
     auth: "required",
     successMessage: "Pedido criado.",
     revalidateTags: ["orders"],

@@ -5,6 +5,7 @@
  * - `generated/` — forma das entidades, gerada do `schema.prisma` (não editar);
  * - `models` / `enums` — o que dessa geração faz parte do contrato público;
  * - `primitives` — blocos de validação reutilizáveis;
+ * - `errors` — catálogo de erros: código → status HTTP + mensagem em pt-BR;
  * - `<módulo>/` — schemas de request e response de cada módulo da API.
  *
  * Isomórfico: depende só de `zod`. Nada aqui pode importar `@repo/db`, `@prisma/client`
@@ -13,6 +14,7 @@
 
 export * from './common';
 export * from './enums';
+export * from './errors';
 export * from './models';
 export * from './primitives';
 

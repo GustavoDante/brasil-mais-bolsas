@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateScholarshipSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScholarshipFullDto } from "@/lib/api/dto";
-
-const schema = CreateScholarshipSchema;
-
-export type CreateScholarshipInput = z.infer<typeof schema>;
+import {
+  createScholarshipInputSchema,
+  type CreateScholarshipInput,
+} from "@/schemas/scholarships/create-scholarship.schema";
 
 /**
  * `POST /v1/scholarships` — Cria uma bolsa (admin).
@@ -24,7 +18,7 @@ export async function createScholarship(
 ): Promise<ActionResult<ScholarshipFullDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createScholarshipInputSchema,
     auth: "required",
     successMessage: "Bolsa criada.",
     revalidateTags: ["scholarships"],

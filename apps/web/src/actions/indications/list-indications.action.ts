@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { IndicationDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListIndicationsInput = z.infer<typeof schema>;
+import { listIndicationsInputSchema } from "@/schemas/indications/list-indications.schema";
 
 /**
  * `GET /v1/indications` — Lista todas as indicações (admin).
@@ -19,12 +15,12 @@ export async function listIndications(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listIndicationsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; indications: IndicationDto[] }>(
         "/indications",
         { token },
-      ).then((response) => response.indications),
+      ).then((response) => response.indications)
   });
 }

@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CallDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListMyCallsInput = z.infer<typeof schema>;
+import { listMyCallsInputSchema } from "@/schemas/calls/list-my-calls.schema";
 
 /**
  * `GET /v1/calls/user` — Lista as ligações do usuário autenticado.
@@ -17,11 +13,11 @@ export type ListMyCallsInput = z.infer<typeof schema>;
 export async function listMyCalls(): Promise<ActionResult<CallDto[]>> {
   return executeAction({
     input: {},
-    schema,
+    schema: listMyCallsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; calls: CallDto[] }>("/calls/user", {
-        token,
-      }).then((response) => response.calls),
+        token
+      }).then((response) => response.calls)
   });
 }

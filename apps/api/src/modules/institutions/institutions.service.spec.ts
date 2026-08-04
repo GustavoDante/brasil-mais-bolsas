@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { UploadedFileData } from '../../common/types/uploaded-file.type';
 import { PrismaService } from '../../database/prisma/prisma.service';
@@ -6,6 +5,7 @@ import type { Institution } from '@repo/db';
 import { StorageService } from '../../integrations/storage/storage.service';
 import { UploadsService } from '../uploads/uploads.service';
 import { InstitutionsService } from './institutions.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const imageFile: UploadedFileData = {
   fieldname: 'image',
@@ -194,10 +194,10 @@ describe('InstitutionsService', () => {
   });
 
   describe('update', () => {
-    it('deve lancar NotFoundException se a instituicao nao existir', async () => {
+    it('deve lancar AppException 404 se a instituicao nao existir', async () => {
       prisma.institution.findUnique.mockResolvedValue(null);
 
-      await expect(service.update('id', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update('id', {})).rejects.toMatchObject({ httpStatus: 404 });
     });
 
     it('deve atualizar a instituicao convertendo city para upper case', async () => {

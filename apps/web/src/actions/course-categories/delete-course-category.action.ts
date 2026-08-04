@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da categoria"),
-});
-
-export type DeleteCourseCategoryInput = z.infer<typeof schema>;
+import {
+  deleteCourseCategoryInputSchema,
+  type DeleteCourseCategoryInput,
+} from "@/schemas/course-categories/delete-course-category.schema";
 
 /**
  * `DELETE /v1/course-categories/:id` — Remove uma categoria de curso (admin).
@@ -20,7 +17,7 @@ export async function deleteCourseCategory(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteCourseCategoryInputSchema,
     auth: "required",
     successMessage: "Categoria removida.",
     revalidateTags: ["course-categories"],

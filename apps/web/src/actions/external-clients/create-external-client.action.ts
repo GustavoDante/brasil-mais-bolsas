@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateExternalClientSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ExternalClientDto } from "@/lib/api/dto";
-
-const schema = CreateExternalClientSchema;
-
-export type CreateExternalClientInput = z.infer<typeof schema>;
+import {
+  createExternalClientInputSchema,
+  type CreateExternalClientInput,
+} from "@/schemas/external-clients/create-external-client.schema";
 
 /**
  * `POST /v1/external-clients` — Cria o cliente correspondente no gateway de pagamento.
@@ -24,7 +18,7 @@ export async function createExternalClient(
 ): Promise<ActionResult<ExternalClientDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createExternalClientInputSchema,
     auth: "required",
     successMessage: "Cliente criado.",
     revalidateTags: ["external-clients"],

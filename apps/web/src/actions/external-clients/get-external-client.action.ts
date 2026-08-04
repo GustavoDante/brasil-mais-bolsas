@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ExternalClientDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id do cliente"),
-});
-
-export type GetExternalClientInput = z.infer<typeof schema>;
+import {
+  getExternalClientInputSchema,
+  type GetExternalClientInput,
+} from "@/schemas/external-clients/get-external-client.schema";
 
 /**
  * `GET /v1/external-clients/:id` — Busca um cliente do gateway pelo id.
@@ -21,7 +18,7 @@ export async function getExternalClient(
 ): Promise<ActionResult<ExternalClientDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getExternalClientInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; client: ExternalClientDto }>(

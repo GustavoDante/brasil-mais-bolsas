@@ -1,18 +1,11 @@
 "use server";
 
-import { UpdateSellerSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = UpdateSellerSchema.extend({ id: zId("Informe o id do vendedor") });
-
-export type UpdateSellerInput = z.infer<typeof schema>;
+import {
+  updateSellerInputSchema,
+  type UpdateSellerInput,
+} from "@/schemas/sellers/update-seller.schema";
 
 /**
  * `PUT /v1/sellers/:id` — Atualiza um vendedor (admin).
@@ -24,7 +17,7 @@ export async function updateSeller(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: updateSellerInputSchema,
     auth: "required",
     successMessage: "Vendedor atualizado.",
     revalidateTags: ["sellers"],

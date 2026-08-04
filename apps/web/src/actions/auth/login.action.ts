@@ -1,18 +1,9 @@
 "use server";
 
-import { LoginSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { AuthResponseDto } from "@/lib/api/dto";
-
-const schema = LoginSchema;
-
-export type LoginInput = z.infer<typeof schema>;
+import { loginInputSchema, type LoginInput } from "@/schemas/auth/login.schema";
 
 /**
  * `POST /v1/auth/login` — Autentica e devolve o token de acesso (a sessão é gravada por `signIn`).
@@ -22,7 +13,7 @@ export async function login(
 ): Promise<ActionResult<AuthResponseDto>> {
   return executeAction({
     input,
-    schema,
+    schema: loginInputSchema,
     auth: "none",
     run: ({ email, password }) =>
       apiRequest<AuthResponseDto>("/auth/login", {

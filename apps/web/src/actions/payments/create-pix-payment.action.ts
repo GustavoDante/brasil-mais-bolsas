@@ -1,18 +1,12 @@
 "use server";
 
-import { CreatePixPaymentSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PaymentResultDto } from "@/lib/api/dto";
-
-const schema = CreatePixPaymentSchema;
-
-export type CreatePixPaymentInput = z.infer<typeof schema>;
+import {
+  createPixPaymentInputSchema,
+  type CreatePixPaymentInput,
+} from "@/schemas/payments/create-pix-payment.schema";
 
 /**
  * `POST /v1/payment/asaas/pix` — Cria um pagamento via PIX e devolve o QR Code.
@@ -24,7 +18,7 @@ export async function createPixPayment(
 ): Promise<ActionResult<PaymentResultDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createPixPaymentInputSchema,
     auth: "required",
     successMessage: "PIX gerado.",
     revalidateTags: ["orders", "payments"],

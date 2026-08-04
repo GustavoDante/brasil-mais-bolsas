@@ -1,19 +1,12 @@
 "use server";
 
-import { UpdateCallSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CallDto } from "@/lib/api/dto";
-
-const schema = UpdateCallSchema.extend({ id: zId("Informe o id da ligação") });
-
-export type UpdateCallInput = z.infer<typeof schema>;
+import {
+  updateCallInputSchema,
+  type UpdateCallInput,
+} from "@/schemas/calls/update-call.schema";
 
 /**
  * `PATCH /v1/calls/:id` — Atualiza uma ligação.
@@ -25,7 +18,7 @@ export async function updateCall(
 ): Promise<ActionResult<CallDto>> {
   return executeAction({
     input,
-    schema,
+    schema: updateCallInputSchema,
     auth: "required",
     successMessage: "Ligação atualizada.",
     revalidateTags: ["calls"],

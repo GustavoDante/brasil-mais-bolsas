@@ -50,7 +50,9 @@ pnpm db:seed
 - Global `ZodValidationPipe` (nestjs-zod) → toda entrada precisa de um DTO criado com
   `createZodDto` sobre um schema de `@repo/contracts`. Nunca aceite dado sem validação.
 - Global `AllExceptionsFilter` (`src/common/filters/`) standardizes errors as
-  `{ statusCode, timestamp, path, message }`; stack traces are logged, never returned.
+  `{ ok: false, code, message, statusCode, timestamp, path, fieldErrors? }`; stack traces
+  are logged, never returned. Lance sempre `AppException('<code>')` — nunca as exceções do
+  Nest; status e mensagem vêm do `ERROR_CATALOG` de `@repo/contracts`.
 - Global `ThrottlerGuard` — 100 req / 60s per IP. Tighten sensitive routes with `@Throttle()`.
 - `helmet()` on; CORS driven by `ALLOWED_ORIGINS` (empty = CORS disabled).
 - Swagger UI at **`/docs`** (dev, or `SWAGGER_ENABLED=true`).
@@ -199,15 +201,47 @@ async login(...) {}
 ALLOWED_ORIGINS=https://seusite.com.br,https://admin.seusite.com.br
 ```
 
-### Tratamento global de exceções (AllExceptionsFilter)
+### Erros: `AppException` e o catálogo (obrigatório)
 
-- `AllExceptionsFilter` está em `src/common/filters/all-exceptions.filter.ts` e é
-  registrado globalmente em `main.ts`.
-- Ele padroniza todas as respostas de erro no formato `{ statusCode, timestamp, path, message }`.
-- Erros `>= 500` são logados com stack trace via `Logger` do NestJS.
-- Stack traces **nunca** são expostos na resposta HTTP, apenas no log do servidor.
-- Novos filtros de exceção específicos (ex: por domínio) devem ser criados em
-  `src/common/filters/` e registrados no módulo correspondente, não globalmente.
+**Nunca lance `NotFoundException`, `BadRequestException` e afins.** O status HTTP e a
+mensagem de um erro são definidos uma vez só, no `ERROR_CATALOG` de `@repo/contracts`:
+
+```ts
+import { AppException } from '../../common/exceptions/app.exception';
+
+if (!user) throw new AppException('user-not-found');   // 404 + "Usuário não encontrado."
+```
+
+O `code` é tipado (`ErrorCode`), então um slug que não está no catálogo **não compila** —
+não existe mais o `throw new NotFoundException('user-not-fond')` que passa batido.
+
+**Código novo:** adicione a entrada em `packages/contracts/src/errors.ts` com o status e o
+texto em pt-BR. Não escreva mensagem no service; se você precisa de um texto diferente, o
+que falta é um código novo. A única exceção é a opção `{ message }`, reservada para erro de
+terceiro cujo texto nasce fora (a descrição que o Asaas devolve) — veja `asaas.service.ts`.
+
+Convenção de nomes: `<recurso>-not-found` (404) quando a busca falha e `invalid-<recurso>`
+(400) quando o recurso veio referenciado no corpo da requisição.
+
+**O filtro.** `AllExceptionsFilter` (`src/common/filters/`) é registrado globalmente em
+`main.ts` e é o único lugar que transforma exceção em resposta. Toda falha sai como:
+
+```json
+{ "ok": false, "code": "user-not-found", "message": "Usuário não encontrado.",
+  "statusCode": 404, "timestamp": "…", "path": "/v1/users/…", "fieldErrors": {} }
+```
+
+Quatro caminhos, nesta ordem: `AppException` → catálogo; `ZodValidationException` →
+`validation-error` + `fieldErrors`; `HttpException` de terceiros (throttler, Multer,
+guards) → código genérico pelo status, **descartando** o texto técnico em inglês; qualquer
+outra coisa → `internal-error`, sem a mensagem original (ela pode conter query ou string de
+conexão). Erros `>= 500` vão para o log com stack trace; stack **nunca** vai na resposta.
+
+`test/e2e/errors.e2e-spec.ts` cobre os quatro caminhos — é o teste que segura o contrato do
+corpo de erro, já que os demais e2e só olham status.
+
+- Filtros de exceção específicos por domínio, se algum dia forem necessários, ficam em
+  `src/common/filters/` e são registrados no módulo, não globalmente.
 
 ### Prefixo global de versão
 

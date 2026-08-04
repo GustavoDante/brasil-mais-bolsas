@@ -1,18 +1,11 @@
 "use server";
 
-import { UpdateInstitutionSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = UpdateInstitutionSchema.extend({ id: zId("Informe o id da instituição") });
-
-export type UpdateInstitutionInput = z.infer<typeof schema>;
+import {
+  updateInstitutionInputSchema,
+  type UpdateInstitutionInput,
+} from "@/schemas/institutions/update-institution.schema";
 
 /**
  * `PUT /v1/institutions/:id` — Atualiza uma instituição (admin ou manager da instituição).
@@ -24,7 +17,7 @@ export async function updateInstitution(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: updateInstitutionInputSchema,
     auth: "required",
     successMessage: "Instituição atualizada.",
     revalidateTags: ["institutions"],

@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { OrderDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id do pedido"),
-});
-
-export type GetOrderInput = z.infer<typeof schema>;
+import {
+  getOrderInputSchema,
+  type GetOrderInput,
+} from "@/schemas/orders/get-order.schema";
 
 /**
  * `GET /v1/order/id/:id` — Busca um pedido pelo id.
@@ -21,7 +18,7 @@ export async function getOrder(
 ): Promise<ActionResult<OrderDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getOrderInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; order: OrderDto }>(

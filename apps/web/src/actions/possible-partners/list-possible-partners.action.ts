@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PossiblePartnerDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListPossiblePartnersInput = z.infer<typeof schema>;
+import { listPossiblePartnersInputSchema } from "@/schemas/possible-partners/list-possible-partners.schema";
 
 /**
  * `GET /v1/possible-partners` — Lista os possíveis parceiros (admin).
@@ -19,12 +15,12 @@ export async function listPossiblePartners(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listPossiblePartnersInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; possiblePartners: PossiblePartnerDto[] }>(
         "/possible-partners",
         { token },
-      ).then((response) => response.possiblePartners),
+      ).then((response) => response.possiblePartners)
   });
 }

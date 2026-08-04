@@ -1,7 +1,8 @@
-import { BadRequestException, type INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { SellersService } from '../../src/modules/sellers/sellers.service';
 import { createTestApp, validCreateSellerPayload } from './shared';
+import { AppException } from '../../src/common/exceptions/app.exception';
 
 describe('Sellers (e2e)', () => {
   let app: INestApplication;
@@ -84,7 +85,7 @@ describe('Sellers (e2e)', () => {
         .expect(400));
 
     it('should reject invalid credentials -> 400', async () => {
-      getSellersService().login.mockRejectedValueOnce(new BadRequestException('seller-not-found'));
+      getSellersService().login.mockRejectedValueOnce(new AppException('seller-not-found'));
 
       await request(app.getHttpServer())
         .post('/v1/sellers/login')
@@ -106,7 +107,7 @@ describe('Sellers (e2e)', () => {
 
     it('should reject missing seller -> 400', async () => {
       getSellersService().findOne.mockRejectedValueOnce(
-        new BadRequestException('seller-not-found'),
+        new AppException('seller-not-found'),
       );
 
       await request(app.getHttpServer())

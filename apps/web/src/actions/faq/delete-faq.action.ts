@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da pergunta"),
-});
-
-export type DeleteFaqInput = z.infer<typeof schema>;
+import {
+  deleteFaqInputSchema,
+  type DeleteFaqInput,
+} from "@/schemas/faq/delete-faq.schema";
 
 /**
  * `DELETE /v1/faq/:id` — Remove uma pergunta frequente (admin).
@@ -20,7 +17,7 @@ export async function deleteFaq(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteFaqInputSchema,
     auth: "required",
     successMessage: "Pergunta removida.",
     revalidateTags: ["faq"],

@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Prisma } from '@repo/db';
 import type { JwtUser } from '../auth/strategies/jwt.strategy';
@@ -13,6 +8,7 @@ import type {
   OrderListQueryDto,
   UpdateOrderDefaulterDto,
 } from './dto/orders.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type OrderUser = JwtUser & { institution_id?: string | null };
 
@@ -56,7 +52,7 @@ export class OrdersService {
     });
 
     if (existingOrder) {
-      throw new BadRequestException('order-already-exists');
+      throw new AppException('order-already-exists');
     }
 
     await this.prisma.order.create({
@@ -108,7 +104,7 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException('order-not-found');
+      throw new AppException('order-not-found');
     }
 
     await this.assertCanAccessOrder(user, order);
@@ -117,7 +113,7 @@ export class OrdersService {
 
   async findExpired(user: OrderUser) {
     if (user.type !== 'admin' && user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const where: Prisma.OrderWhereInput = {
@@ -171,7 +167,7 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException('order-not-found');
+      throw new AppException('order-not-found');
     }
 
     await this.assertCanAccessOrder(user, order);
@@ -180,7 +176,7 @@ export class OrdersService {
 
   async updateDefaulter(user: OrderUser, dto: UpdateOrderDefaulterDto) {
     if (user.type !== 'admin' && user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const order = await this.prisma.order.findUnique({
@@ -189,7 +185,7 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException('order-not-found');
+      throw new AppException('order-not-found');
     }
 
     await this.assertCanAccessOrder(user, order);
@@ -210,10 +206,7 @@ export class OrdersService {
   async changeScholarship(dto: ChangeOrderScholarshipDto) {
     const order = await this.prisma.order.findUnique({ where: { id: dto.orderId } });
     if (!order) {
-      throw new BadRequestException({
-        message: 'order-not-found',
-        userMessage: 'Pedido nao encontrado',
-      });
+      throw new AppException('invalid-order');
     }
 
     const [oldScholarship, newScholarship] = await Promise.all([
@@ -222,7 +215,7 @@ export class OrdersService {
     ]);
 
     if (!oldScholarship) {
-      throw new BadRequestException('current-scholarship-not-found');
+      throw new AppException('current-scholarship-not-found');
     }
 
     const maybeNew = newScholarship as unknown as {
@@ -237,10 +230,7 @@ export class OrdersService {
       maybeNew.active === false ||
       maybeNew.expired === true
     ) {
-      throw new BadRequestException({
-        message: 'scholarship-not-found',
-        userMessage: 'Bolsa nao encontrada',
-      });
+      throw new AppException('invalid-scholarship');
     }
 
     const updatedOrder = await this.prisma.order.update({
@@ -297,7 +287,7 @@ export class OrdersService {
     });
 
     if (!user || (user as { delete?: boolean }).delete) {
-      throw new BadRequestException('invalid-user');
+      throw new AppException('invalid-user');
     }
   }
 
@@ -308,7 +298,7 @@ export class OrdersService {
     });
 
     if (!scholarship) {
-      throw new BadRequestException('invalid-scholarship');
+      throw new AppException('invalid-scholarship');
     }
   }
 
@@ -347,12 +337,12 @@ export class OrdersService {
     if (user.type === 'manager') {
       const institutionId = await this.resolveManagerInstitutionId(user);
       if (institutionId && order.scholarship?.institution_id === institutionId) return;
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     if (order.user_id === user.userId) return;
 
-    throw new ForbiddenException('unauthorized');
+    throw new AppException('forbidden');
   }
 
   private async resolveManagerInstitutionId(user: OrderUser): Promise<string | null> {

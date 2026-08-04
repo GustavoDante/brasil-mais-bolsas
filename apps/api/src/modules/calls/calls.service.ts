@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Prisma } from '@repo/db';
 import { CreateCallDto, UpdateCallDto } from './dto/calls.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const callInclude = {
   caller: { select: { id: true, name: true } },
@@ -19,7 +20,7 @@ export class CallsService {
     });
 
     if (!user) {
-      throw new BadRequestException('invalid-receiver');
+      throw new AppException('invalid-receiver');
     }
 
     return user;
@@ -68,7 +69,7 @@ export class CallsService {
     });
 
     if (!call) {
-      throw new NotFoundException('call-not-found');
+      throw new AppException('call-not-found');
     }
 
     return call;

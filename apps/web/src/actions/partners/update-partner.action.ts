@@ -1,18 +1,11 @@
 "use server";
 
-import { UpdatePartnerSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = UpdatePartnerSchema.extend({ id: zId("Informe o id do parceiro") });
-
-export type UpdatePartnerInput = z.infer<typeof schema>;
+import {
+  updatePartnerInputSchema,
+  type UpdatePartnerInput,
+} from "@/schemas/partners/update-partner.schema";
 
 /**
  * `PUT /v1/partners/:id` — Atualiza um parceiro (admin).
@@ -24,7 +17,7 @@ export async function updatePartner(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: updatePartnerInputSchema,
     auth: "required",
     successMessage: "Parceiro atualizado.",
     revalidateTags: ["partners"],

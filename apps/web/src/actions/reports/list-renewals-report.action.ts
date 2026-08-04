@@ -1,18 +1,12 @@
 "use server";
 
-import { RenewalsReportQuerySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ReportRowDto } from "@/lib/api/dto";
-
-const schema = RenewalsReportQuerySchema;
-
-export type ListRenewalsReportInput = z.infer<typeof schema>;
+import {
+  listRenewalsReportInputSchema,
+  type ListRenewalsReportInput,
+} from "@/schemas/reports/list-renewals-report.schema";
 
 /**
  * `GET /v1/reports/students/renewals` — Relatório de renovações previstas para os próximos dias.
@@ -24,7 +18,7 @@ export async function listRenewalsReport(
 ): Promise<ActionResult<ReportRowDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listRenewalsReportInputSchema,
     auth: "required",
     run: ({ days }, { token }) =>
       apiRequest<{ ok: boolean; students: ReportRowDto[] }>(

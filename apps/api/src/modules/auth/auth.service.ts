@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +9,7 @@ import type { UserSafe } from '../users/types/user-safe.type';
 import { UsersService } from '../users/users.service';
 import type { AuthResponseDto } from './dto/auth-response.dto';
 import type { JwtPayload } from './types/jwt-payload.type';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const DEFAULT_RESET_TOKEN_TTL_HOURS = 24;
 
@@ -104,13 +105,13 @@ export class AuthService {
   /** Conclusão da recuperação: valida o token, troca a senha e avisa o dono da conta. */
   async resetPassword(token: string, password: string, repassword: string): Promise<void> {
     if (!this.matchesConfirmation(password, repassword)) {
-      throw new BadRequestException('passwords-not-matching');
+      throw new AppException('passwords-not-matching');
     }
 
     const user = await this.usersService.findByValidResetToken(this.hashToken(token));
 
     if (!user) {
-      throw new BadRequestException('token-not-found-or-expired');
+      throw new AppException('token-not-found-or-expired');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

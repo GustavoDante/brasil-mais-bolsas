@@ -48,28 +48,30 @@ Helpers em `@/actions/_core`: `isActionSuccess`, `isActionFailure`, `actionDataO
 
 ## Contrato de erro
 
-`code` é sempre estável; `message` é sempre exibível em pt-BR. A resolução é, nesta ordem:
+`code` é um `ErrorCode` de `@repo/contracts` — união de literais, então comparar com um
+código que não existe é erro de compilação. `message` é o texto em pt-BR **que a API
+mandou**: o par (status, mensagem) de cada erro é definido uma vez, em
+`packages/contracts/src/errors.ts`, e a resposta o carrega pronto.
 
-1. **slug do backend** (`user-not-found`, `order-already-exists`, …) — extraído de
-   `{ statusCode, message }` do `AllExceptionsFilter`, inclusive quando vem aninhado;
-2. **`userMessage`** do backend, quando enviado — tem prioridade sobre o dicionário;
-3. **dicionário** `ERROR_MESSAGES` (`_core/action-error.ts`), em pt-BR;
-4. **padrão por status HTTP** (401/403/404/409/422/429/5xx);
-5. **`unknown-error`** com a mensagem padrão.
+O `AllExceptionsFilter` responde sempre
+`{ ok: false, code, message, statusCode, timestamp, path, fieldErrors? }`, e
+`_core/action-error.ts` só lê esses campos. **Não há tradução aqui.** Era o que existia
+antes — um dicionário local espelhando os `throw` do backend — e os dois divergiram: 8
+códigos da API sem entrada no web, 7 entradas no web sem ninguém que as lançasse.
 
-Casos especiais já cobertos:
+Casos em que o texto é definido localmente — os únicos em que não existe resposta da API
+para repassar:
 
 | Situação | `code` | `message` |
 | --- | --- | --- |
-| Validação local (zod) | `validation-error` | "Confira os campos destacados." + `fieldErrors` |
-| Validação do backend (class-validator) | `validation-error` | idem, com `fieldErrors` por campo |
+| Validação local (zod), antes de chamar a API | `validation-error` | "Confira os campos destacados." + `fieldErrors` |
 | Sem sessão em rota `auth: "required"` | `not-authenticated` | "Faça login para continuar." (nem chama a API) |
 | Falha de rede / timeout | `network-error` / `timeout-error` | mensagem própria |
-| Texto técnico (`ThrottlerException…`, `Erro interno do servidor`) | por status | mensagem amigável; o texto original fica em `details` |
-| Código novo ainda sem tradução | o próprio slug | fallback por status |
+| Exceção inesperada no próprio Next | `unknown-error` | mensagem padrão; o original fica em `details` |
+| Resposta sem o nosso corpo (proxy, balanceador) | genérico do status | texto do catálogo para aquele status |
 
-Ao criar um `throw new XException('novo-codigo')` na API, adicione a tradução em
-`ERROR_MESSAGES` — sem isso o código continua correto, só a mensagem cai no padrão.
+Erro novo na API ⇒ entrada em `packages/contracts/src/errors.ts`. Nada muda aqui: o código
+e a mensagem chegam prontos, e o `ErrorCode` já reconhece o código novo nos dois apps.
 
 Conferência (não precisa da API no ar):
 
@@ -79,17 +81,43 @@ npx tsx scripts/check-action-errors.ts
 
 ## Validação de entrada
 
-Cada action valida a entrada com zod **antes** de qualquer rede, espelhando os decorators
-do DTO no backend (`@IsEmail`, `@MinLength(6)`, `@IsInt`, `@IsDateString`, `@Length(2,2)`…).
-Os blocos ficam em `_core/schemas.ts` (`zId`, `zText`, `zEmail`, `zPassword`, `zDateString`,
-`zState`, `zDocument`, `zAmount`, `zEnumValue`…), então a regra é declarada uma vez só.
-
-O schema é privado ao arquivo (módulo `"use server"` só pode exportar função assíncrona);
-o que sai é o **tipo** da entrada:
+Cada action valida a entrada com zod **antes** de qualquer rede. O schema não mora aqui:
+fica em `src/schemas/<módulo>/<rota>.schema.ts`, um schema e um tipo por arquivo.
 
 ```ts
-import type { CreateUserInput } from "@/actions/users";
+// src/schemas/faq/update-faq.schema.ts
+import { UpdateFaqSchema, zId } from "@repo/contracts";
+
+export const updateFaqInputSchema = UpdateFaqSchema.extend({
+  id: zId("Informe o id da pergunta"),
+});
+
+export type UpdateFaqInput = z.infer<typeof updateFaqInputSchema>;
 ```
+
+```ts
+// src/actions/faq/update-faq.action.ts
+import { updateFaqInputSchema } from "@/schemas/faq/update-faq.schema";
+
+```
+
+**Por que fora da action.** Um módulo `"use server"` só pode exportar função assíncrona, e
+`@/actions/_core` arrasta `executeAction` → `@/lib/api/session` → `cookies()`. Um formulário
+de cliente que importasse o schema de lá quebraria. Em `src/schemas` ele depende só de `zod`
+e `@repo/contracts`, então o mesmo objeto serve ao `zodResolver` do react-hook-form:
+
+```tsx
+const form = useForm<UpdateFaqInput>({ resolver: zodResolver(updateFaqInputSchema) });
+```
+
+A tela passa a validar exatamente o que a action valida, que por sua vez valida exatamente
+o que a API valida — a mesma cadeia, sem regra reescrita em nenhum ponto.
+
+Os blocos (`zId`, `zEmail`, `zPassword`, `zOptionalText`, `zStringArray`…) e os schemas de
+request vêm de `@repo/contracts`. **Nunca importe `@/actions/_core` num arquivo de schema.**
+
+A action continua reexportando o tipo, então `import type { UpdateFaqInput } from
+"@/actions/faq"` segue funcionando.
 
 ## Autenticação
 

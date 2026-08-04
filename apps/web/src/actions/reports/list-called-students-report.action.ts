@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ReportRowDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListCalledStudentsReportInput = z.infer<typeof schema>;
+import { listCalledStudentsReportInputSchema } from "@/schemas/reports/list-called-students-report.schema";
 
 /**
  * `GET /v1/reports/students/called` — Relatório de alunos já contatados.
@@ -19,12 +15,12 @@ export async function listCalledStudentsReport(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listCalledStudentsReportInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; students: ReportRowDto[] }>(
         "/reports/students/called",
         { token, revalidate: false },
-      ).then((response) => response.students),
+      ).then((response) => response.students)
   });
 }

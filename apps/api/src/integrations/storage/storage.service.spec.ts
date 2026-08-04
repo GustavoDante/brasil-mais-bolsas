@@ -1,4 +1,3 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { StorageService } from './storage.service';
@@ -111,7 +110,7 @@ describe('StorageService', () => {
           extension: '.png',
           folder: 'misc',
         }),
-      ).rejects.toThrow(ServiceUnavailableException);
+      ).rejects.toMatchObject({ httpStatus: 503 });
       expect(s3Mock.__send).not.toHaveBeenCalled();
     });
   });

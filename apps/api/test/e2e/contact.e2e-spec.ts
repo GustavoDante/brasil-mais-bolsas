@@ -1,7 +1,8 @@
-import { ServiceUnavailableException, type INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import request from 'supertest';
 import { contactServiceMock, createTestApp, validContactPayload } from './shared';
+import { AppException } from '../../src/common/exceptions/app.exception';
 
 describe('Contact (e2e)', () => {
   let app: INestApplication;
@@ -77,7 +78,7 @@ describe('Contact (e2e)', () => {
 
     it('deve propagar 503 quando o envio estiver indisponivel', async () => {
       contactServiceMock.submit.mockRejectedValue(
-        new ServiceUnavailableException('contact-not-delivered'),
+        new AppException('contact-not-delivered'),
       );
 
       await request(app.getHttpServer()).post('/v1/contact').send(validContactPayload).expect(503);

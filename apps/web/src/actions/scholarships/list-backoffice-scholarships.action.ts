@@ -1,18 +1,12 @@
 "use server";
 
-import { ScholarshipListQuerySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScholarshipFullDto } from "@/lib/api/dto";
-
-const schema = ScholarshipListQuerySchema;
-
-export type ListBackofficeScholarshipsInput = z.infer<typeof schema>;
+import {
+  listBackofficeScholarshipsInputSchema,
+  type ListBackofficeScholarshipsInput,
+} from "@/schemas/scholarships/list-backoffice-scholarships.schema";
 
 /**
  * `GET /v1/scholarships/list/backoffice` — Lista as bolsas do backoffice com contagem de vendas.
@@ -24,7 +18,7 @@ export async function listBackofficeScholarships(
 ): Promise<ActionResult<ScholarshipFullDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listBackofficeScholarshipsInputSchema,
     auth: "required",
     run: (
       {

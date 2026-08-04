@@ -1,4 +1,3 @@
-import { UnprocessableEntityException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { UploadedFileData } from '../../common/types/uploaded-file.type';
 import { StorageService } from '../../integrations/storage/storage.service';
@@ -69,7 +68,7 @@ describe('UploadsService', () => {
     it('deve recusar conteudo nao identificado sem chamar o S3', async () => {
       const file = makeFile({ buffer: Buffer.from('conteudo qualquer sem assinatura') });
 
-      await expect(service.upload(file)).rejects.toThrow(UnprocessableEntityException);
+      await expect(service.upload(file)).rejects.toMatchObject({ httpStatus: 422 });
       expect(storage.upload).not.toHaveBeenCalled();
     });
   });

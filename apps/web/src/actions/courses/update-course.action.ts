@@ -1,18 +1,11 @@
 "use server";
 
-import { UpdateCourseSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = UpdateCourseSchema.extend({ id: zId("Informe o id do curso") });
-
-export type UpdateCourseInput = z.infer<typeof schema>;
+import {
+  updateCourseInputSchema,
+  type UpdateCourseInput,
+} from "@/schemas/courses/update-course.schema";
 
 /**
  * `PUT /v1/courses/:id` — Atualiza um curso (admin).
@@ -24,7 +17,7 @@ export async function updateCourse(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: updateCourseInputSchema,
     auth: "required",
     successMessage: "Curso atualizado.",
     revalidateTags: ["courses"],

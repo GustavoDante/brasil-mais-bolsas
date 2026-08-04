@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -16,6 +15,7 @@ import type { AuthenticatedRequest } from '../../common/types/authenticated-requ
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateCallDto, UpdateCallDto } from './dto/calls.dto';
 import { CallsService } from './calls.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @ApiTags('Calls')
 @Controller('calls')
@@ -29,7 +29,7 @@ export class CallsController {
   @ApiResponse({ status: 201, description: 'Chamado criado com sucesso' })
   async create(@Body() dto: CreateCallDto, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const call = await this.callsService.create(req.user.userId, dto);
@@ -42,7 +42,7 @@ export class CallsController {
   @ApiOperation({ summary: 'Lista chamados internos (Apenas Admin)' })
   async findAll(@Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const calls = await this.callsService.findAll();
@@ -64,7 +64,7 @@ export class CallsController {
   @ApiOperation({ summary: 'Busca um chamado por id (Apenas Admin)' })
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const call = await this.callsService.findOne(id);
@@ -81,7 +81,7 @@ export class CallsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const call = await this.callsService.update(id, dto);
@@ -95,7 +95,7 @@ export class CallsController {
   @ApiOperation({ summary: 'Remove um chamado interno (Apenas Admin)' })
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     await this.callsService.remove(id);

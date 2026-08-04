@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da ligação"),
-});
-
-export type DeletePossiblePartnerCallInput = z.infer<typeof schema>;
+import {
+  deletePossiblePartnerCallInputSchema,
+  type DeletePossiblePartnerCallInput,
+} from "@/schemas/possible-partners/delete-possible-partner-call.schema";
 
 /**
  * `DELETE /v1/possible-partners/call/:id` — Remove uma ligação de possível parceiro (admin).
@@ -20,7 +17,7 @@ export async function deletePossiblePartnerCall(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deletePossiblePartnerCallInputSchema,
     auth: "required",
     successMessage: "Ligação removida.",
     revalidateTags: ["possible-partners"],

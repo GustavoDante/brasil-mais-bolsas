@@ -48,6 +48,7 @@ do pnpm; um `npm install` cria um `package-lock.json` paralelo e quebra os links
 | --- | --- | --- |
 | **Forma** das entidades (campos, nullability, defaults) | `packages/db/prisma/schema.prisma` | gerada, nunca escrita à mão |
 | **Regras** de validação e formato do JSON | `packages/contracts/src/<módulo>` | escritas uma vez, usadas pelos dois apps |
+| **Erros**: código, status HTTP e mensagem ao usuário | `packages/contracts/src/errors.ts` | a API resolve por ele, o web só exibe |
 | Modelo de **apresentação** (texto formatado, pt-BR) | `apps/web/src/types` | só o web |
 
 Um campo novo no `schema.prisma` chega nos dois apps por `pnpm db:generate`. Se você se
@@ -78,6 +79,7 @@ src/
   enums.ts       enums de domínio (os *ScalarFieldEnum do Prisma ficam de fora)
   primitives.ts  blocos reutilizáveis (zEmail, zDocument, zState, zQueryInt, ...)
   common.ts      envelope { ok, ... } e helpers
+  errors.ts      ERROR_CATALOG: código → status HTTP + mensagem em pt-BR
   <módulo>/      requests.ts + responses.ts de cada módulo da API
 ```
 
@@ -93,6 +95,16 @@ Regras:
   que falta um primitivo.
 - Query string e path param usam os blocos `zQuery*`: tudo chega como string e precisa de
   coerção explícita.
+
+**Erros (`errors.ts`).** O par (status HTTP, mensagem) de cada erro mora aqui. A API lança
+`new AppException('user-not-found')` e o filtro global resolve os dois pelo catálogo; a
+resposta é sempre `{ ok: false, code, message, statusCode, timestamp, path, fieldErrors? }`.
+
+O frontend **não traduz código em mensagem** — exibe a `message` que veio na resposta. É
+isso que faz um web mais antigo que a API continuar mostrando o texto certo. Do catálogo
+ele importa só o tipo `ErrorCode`, para que comparar `error.code === '...'` seja checado
+pelo compilador. Mensagem no service ou dicionário no web é justamente o que este arquivo
+substituiu: os dois já tinham divergido, nas duas direções.
 
 ## Dependências: declare o que você importa
 

@@ -1,19 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalText,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CityDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  term: zOptionalText(),
-});
-
-export type SearchScholarshipCitiesInput = z.infer<typeof schema>;
+import {
+  searchScholarshipCitiesInputSchema,
+  type SearchScholarshipCitiesInput,
+} from "@/schemas/scholarships/search-scholarship-cities.schema";
 
 /**
  * `GET /v1/scholarships/search/city` — Busca cidades que possuem bolsas ativas.
@@ -23,7 +16,7 @@ export async function searchScholarshipCities(
 ): Promise<ActionResult<CityDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: searchScholarshipCitiesInputSchema,
     auth: "none",
     run: ({ term }) =>
       apiRequest<{ ok: boolean; cities: CityDto[] }>(

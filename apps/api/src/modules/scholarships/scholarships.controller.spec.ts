@@ -1,4 +1,3 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { CreateNewScholarshipValueDto, CreateScholarshipDto } from './dto/scholarships.dto';
 import { ScholarshipsController, type AuthenticatedRequest } from './scholarships.controller';
@@ -95,9 +94,7 @@ describe('ScholarshipsController', () => {
 
   describe('Rotas de restrição (Backoffice)', () => {
     it('deve falhar listBackoffice para user', async () => {
-      await expect(controller.listBackoffice(makeReq(userJwt), {})).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(controller.listBackoffice(makeReq(userJwt), {})).rejects.toMatchObject({ httpStatus: 403 });
     });
 
     it('deve permitir listBackoffice para manager', async () => {
@@ -111,7 +108,7 @@ describe('ScholarshipsController', () => {
     it('deve barrar criacao se nao for admin', async () => {
       await expect(
         controller.create({} as CreateScholarshipDto, makeReq(managerJwt)),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toMatchObject({ httpStatus: 403 });
     });
 
     it('deve permitir criacao se for admin', async () => {

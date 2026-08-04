@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CourseCategoryDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id da categoria no sistema antigo"),
-});
-
-export type GetCourseCategoryByOldIdInput = z.infer<typeof schema>;
+import {
+  getCourseCategoryByOldIdInputSchema,
+  type GetCourseCategoryByOldIdInput,
+} from "@/schemas/course-categories/get-course-category-by-old-id.schema";
 
 /**
  * `GET /v1/course-categories/old_id/:id` — Busca uma categoria pelo id do sistema antigo.
@@ -21,7 +18,7 @@ export async function getCourseCategoryByOldId(
 ): Promise<ActionResult<CourseCategoryDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getCourseCategoryByOldIdInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; courseCategory: CourseCategoryDto }>(

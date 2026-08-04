@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  ServiceUnavailableException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { PaymentType, PersonType, Prisma } from '@repo/db';
@@ -15,6 +10,7 @@ import type { AsaasWebhookDto } from './dto/asaas-webhook.dto';
 import type { CreateCreditCardPaymentDto } from './dto/create-credit-card-payment.dto';
 import type { CreateInterestPaymentDto } from './dto/create-interest-payment.dto';
 import type { CreatePixPaymentDto } from './dto/create-pix-payment.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type PaymentUser = Prisma.UserGetPayload<{
   include: { address: true; client: true };
@@ -110,7 +106,7 @@ export class PaymentsService {
     });
 
     if (existingPayment) {
-      throw new BadRequestException('interest-payment-already-exists');
+      throw new AppException('interest-payment-already-exists');
     }
 
     const customerId = await this.ensureAsaasCustomer(user);
@@ -221,11 +217,11 @@ export class PaymentsService {
   async handleAsaasWebhook(accessToken: string | undefined, dto: AsaasWebhookDto) {
     const expectedToken = this.configService.get<string>('ASAAS_WEBHOOK_TOKEN');
     if (!expectedToken) {
-      throw new ServiceUnavailableException('asaas-webhook-token-not-configured');
+      throw new AppException('asaas-webhook-token-not-configured');
     }
 
     if (!accessToken || accessToken !== expectedToken) {
-      throw new UnauthorizedException('invalid-asaas-webhook-token');
+      throw new AppException('invalid-asaas-webhook-token');
     }
 
     const payment = await this.prisma.payment.findFirst({
@@ -271,7 +267,7 @@ export class PaymentsService {
     });
 
     if (!user || user.delete) {
-      throw new BadRequestException('invalid-user');
+      throw new AppException('invalid-user');
     }
 
     const scholarship = await this.prisma.scholarship.findFirst({
@@ -284,7 +280,7 @@ export class PaymentsService {
     });
 
     if (!scholarship) {
-      throw new BadRequestException('invalid-scholarship');
+      throw new AppException('invalid-scholarship');
     }
 
     return { user, scholarship };
@@ -296,7 +292,7 @@ export class PaymentsService {
     }
 
     if (!user.cpf) {
-      throw new BadRequestException('user-cpf-required');
+      throw new AppException('user-cpf-required');
     }
 
     const customer = await this.asaasService.createCustomer({

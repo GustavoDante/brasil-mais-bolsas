@@ -1,4 +1,4 @@
-import { UnauthorizedException, type INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -23,6 +23,7 @@ import { ScholarshipsService } from '../../src/modules/scholarships/scholarships
 import { SellersService } from '../../src/modules/sellers/sellers.service';
 import { UploadsService } from '../../src/modules/uploads/uploads.service';
 import { UsersService } from '../../src/modules/users/users.service';
+import { AppException } from '../../src/common/exceptions/app.exception';
 
 export type GenericObject = Record<string, unknown>;
 
@@ -559,7 +560,7 @@ export function setupPaymentsServiceMocks(): void {
   });
   paymentsServiceMock.handleAsaasWebhook.mockImplementation((accessToken) => {
     if (accessToken !== 'webhook-token') {
-      return Promise.reject(new UnauthorizedException('invalid-asaas-webhook-token'));
+      return Promise.reject(new AppException('invalid-asaas-webhook-token'));
     }
 
     return Promise.resolve({

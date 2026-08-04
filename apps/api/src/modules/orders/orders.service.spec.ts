@@ -1,4 +1,3 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { OrdersService } from './orders.service';
@@ -87,7 +86,7 @@ describe('OrdersService', () => {
 
       await expect(
         service.create({ user_id: 'user-1', scholarship_id: 'scholarship-1' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
   });
 
@@ -130,13 +129,13 @@ describe('OrdersService', () => {
     it('deve bloquear usuario comum acessando pedido de outro usuario', async () => {
       prisma.order.findUnique.mockResolvedValue({ ...order, user_id: 'other-user' });
 
-      await expect(service.findById('order-1', regularUser)).rejects.toThrow(ForbiddenException);
+      await expect(service.findById('order-1', regularUser)).rejects.toMatchObject({ httpStatus: 403 });
     });
 
     it('deve falhar quando pedido nao existir', async () => {
       prisma.order.findUnique.mockResolvedValue(null);
 
-      await expect(service.findById('missing', adminUser)).rejects.toThrow(NotFoundException);
+      await expect(service.findById('missing', adminUser)).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 

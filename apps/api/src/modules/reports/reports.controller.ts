@@ -1,17 +1,10 @@
-import {
-  BadRequestException,
-  Controller,
-  ForbiddenException,
-  Get,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GeneralReportQueryDto, RenewalsReportQueryDto } from './dto/reports.dto';
 import { ReportsService } from './reports.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type ReportUser = {
   userId: string;
@@ -47,7 +40,7 @@ export class ReportsController {
   @ApiOperation({ summary: 'Relatório de alunos (Admin ou Manager)' })
   async getStudents(@Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     const students = await this.reportsService.getStudents({
       userId: req.user.userId,
@@ -63,7 +56,7 @@ export class ReportsController {
   @ApiOperation({ summary: 'Alunos já contatados pelo admin logado' })
   async getCalled(@Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const reportService = this.reportsService as ReportsServiceContract;
@@ -83,7 +76,7 @@ export class ReportsController {
   @ApiOperation({ summary: 'Alunos que precisam de ligação (Apenas Admin)' })
   async getToCall(@Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     const students = await this.reportsService.getToCall({
       userId: req.user.userId,
@@ -98,7 +91,7 @@ export class ReportsController {
   @ApiOperation({ summary: 'Alunos inadimplentes (Admin ou Manager)' })
   async getDefaulters(@Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     const students = await this.reportsService.getDefaulters({
       userId: req.user.userId,
@@ -115,7 +108,7 @@ export class ReportsController {
   @ApiQuery({ name: 'days', required: false, description: 'Janela em dias para renovação' })
   async getRenewals(@Query() query: RenewalsReportQueryDto, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const reportService = this.reportsService as ReportsServiceContract;
@@ -135,7 +128,7 @@ export class ReportsController {
   @ApiOperation({ summary: 'Relatório geral de pagamentos (Admin ou Manager)' })
   async getGeneralReport(@Query() query: GeneralReportQueryDto, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
     const payments = await this.reportsService.getGeneralReport(query, req.user.institution_id);
     return { ok: true, payments };
@@ -151,7 +144,7 @@ export class ReportsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (!orderId) {
-      throw new BadRequestException('missing-order_id');
+      throw new AppException('missing-order-id');
     }
 
     const reportService = this.reportsService as ReportsServiceContract;
@@ -169,12 +162,12 @@ export class ReportsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const instId = req.user.type === 'manager' ? req.user.institution_id : institution;
     if (!instId) {
-      throw new BadRequestException('missing-institution');
+      throw new AppException('missing-institution');
     }
 
     const scholarships = await this.reportsService.getImpactReport(instId);

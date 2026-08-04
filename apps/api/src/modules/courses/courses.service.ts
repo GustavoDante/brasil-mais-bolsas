@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { Prisma } from '@repo/db';
 import type { CreateCourseDto, UpdateCourseDto } from './dto/courses.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class CoursesService {
@@ -12,7 +13,7 @@ export class CoursesService {
       where: { id: dto.category_id },
     });
     if (!category || (category as unknown as { delete?: boolean }).delete)
-      throw new BadRequestException('category-not-valid');
+      throw new AppException('category-not-valid');
 
     return this.prisma.course.create({
       data: {
@@ -58,7 +59,7 @@ export class CoursesService {
       where: { name: { equals: institutionName, mode: 'insensitive' } },
     });
 
-    if (!institution) throw new NotFoundException('institution-not-found');
+    if (!institution) throw new AppException('institution-not-found');
 
     return this.prisma.course.findMany({
       where: {
@@ -93,7 +94,7 @@ export class CoursesService {
       where: { id },
       include: { category: true },
     });
-    if (!course || course.delete) throw new NotFoundException('course-not-found');
+    if (!course || course.delete) throw new AppException('course-not-found');
     return course;
   }
 
@@ -102,20 +103,20 @@ export class CoursesService {
       where: { old_id: oldId, delete: false },
       include: { category: true },
     });
-    if (!course) throw new NotFoundException('course-not-found');
+    if (!course) throw new AppException('course-not-found');
     return course;
   }
 
   async update(id: string, dto: UpdateCourseDto) {
     const course = await this.prisma.course.findUnique({ where: { id } });
-    if (!course || course.delete) throw new NotFoundException('course-not-found');
+    if (!course || course.delete) throw new AppException('course-not-found');
 
     if (dto.category_id) {
       const category = await this.prisma.courseCategory.findUnique({
         where: { id: dto.category_id },
       });
       if (!category || (category as unknown as { delete?: boolean }).delete)
-        throw new BadRequestException('category-not-valid');
+        throw new AppException('category-not-valid');
     }
 
     const updateData: Prisma.CourseUpdateInput = {};
@@ -132,7 +133,7 @@ export class CoursesService {
 
   async softDelete(id: string) {
     const course = await this.prisma.course.findUnique({ where: { id } });
-    if (!course || course.delete) throw new NotFoundException('course-not-found');
+    if (!course || course.delete) throw new AppException('course-not-found');
 
     return this.prisma.course.update({
       where: { id },
@@ -142,7 +143,7 @@ export class CoursesService {
 
   async toggleActive(id: string) {
     const course = await this.prisma.course.findUnique({ where: { id } });
-    if (!course || course.delete) throw new NotFoundException('course-not-found');
+    if (!course || course.delete) throw new AppException('course-not-found');
 
     return this.prisma.course.update({
       where: { id },

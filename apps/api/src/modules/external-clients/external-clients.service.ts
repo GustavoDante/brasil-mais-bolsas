@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CreateExternalClientDto } from './dto/external-client.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class ExternalClientsService {
@@ -26,7 +27,7 @@ export class ExternalClientsService {
 
   async findOne(id: string) {
     const client = await this.prisma.externalClient.findUnique({ where: { id } });
-    if (!client) throw new BadRequestException('external-client-not-found');
+    if (!client) throw new AppException('external-client-not-found');
     return client;
   }
 }

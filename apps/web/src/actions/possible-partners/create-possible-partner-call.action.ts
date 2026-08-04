@@ -1,18 +1,12 @@
 "use server";
 
-import { CreatePossiblePartnerCallSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PossiblePartnerCallDto } from "@/lib/api/dto";
-
-const schema = CreatePossiblePartnerCallSchema;
-
-export type CreatePossiblePartnerCallInput = z.infer<typeof schema>;
+import {
+  createPossiblePartnerCallInputSchema,
+  type CreatePossiblePartnerCallInput,
+} from "@/schemas/possible-partners/create-possible-partner-call.schema";
 
 /**
  * `POST /v1/possible-partners/call` — Registra uma ligação para um possível parceiro (admin).
@@ -24,7 +18,7 @@ export async function createPossiblePartnerCall(
 ): Promise<ActionResult<PossiblePartnerCallDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createPossiblePartnerCallInputSchema,
     auth: "required",
     successMessage: "Ligação registrada.",
     revalidateTags: ["possible-partners"],

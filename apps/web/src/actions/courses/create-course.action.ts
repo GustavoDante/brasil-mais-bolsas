@@ -1,17 +1,11 @@
 "use server";
 
-import { CreateCourseSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = CreateCourseSchema;
-
-export type CreateCourseInput = z.infer<typeof schema>;
+import {
+  createCourseInputSchema,
+  type CreateCourseInput,
+} from "@/schemas/courses/create-course.schema";
 
 /**
  * `POST /v1/courses` — Cria um curso (admin).
@@ -23,7 +17,7 @@ export async function createCourse(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: createCourseInputSchema,
     auth: "required",
     successMessage: "Curso criado.",
     revalidateTags: ["courses"],

@@ -1,9 +1,9 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { User } from '@repo/db';
 import { UsersService } from './users.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 jest.mock('bcrypt');
 
@@ -136,10 +136,10 @@ describe('UsersService', () => {
       },
     };
 
-    it('deve lancar ConflictException se o email ja existir', async () => {
+    it('deve lancar AppException 409 se o email ja existir', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
 
-      await expect(service.create(createDto)).rejects.toThrow(ConflictException);
+      await expect(service.create(createDto)).rejects.toMatchObject({ httpStatus: 409 });
     });
 
     it('deve criar o usuario com senha hasheada do CPF', async () => {
@@ -155,10 +155,10 @@ describe('UsersService', () => {
   });
 
   describe('toggleActive', () => {
-    it('deve lancar NotFoundException se o usuario nao existir', async () => {
+    it('deve lancar AppException 404 se o usuario nao existir', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.toggleActive('inexistente')).rejects.toThrow(NotFoundException);
+      await expect(service.toggleActive('inexistente')).rejects.toMatchObject({ httpStatus: 404 });
     });
 
     it('deve inverter o campo active do usuario', async () => {
@@ -175,10 +175,10 @@ describe('UsersService', () => {
   });
 
   describe('softDelete', () => {
-    it('deve lancar NotFoundException se o usuario nao existir', async () => {
+    it('deve lancar AppException 404 se o usuario nao existir', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.softDelete('inexistente')).rejects.toThrow(NotFoundException);
+      await expect(service.softDelete('inexistente')).rejects.toMatchObject({ httpStatus: 404 });
     });
 
     it('deve setar delete=true e active=false', async () => {
@@ -243,14 +243,14 @@ describe('UsersService', () => {
     it('deve recusar email ja cadastrado', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
 
-      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toMatchObject({ httpStatus: 409 });
       expect(prisma.user.create).not.toHaveBeenCalled();
     });
 
     it('deve recusar CPF ja cadastrado', async () => {
       prisma.user.findFirst.mockResolvedValue(mockUser);
 
-      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toMatchObject({ httpStatus: 409 });
       expect(prisma.user.create).not.toHaveBeenCalled();
     });
 

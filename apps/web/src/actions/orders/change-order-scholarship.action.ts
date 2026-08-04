@@ -1,18 +1,12 @@
 "use server";
 
-import { ChangeOrderScholarshipSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { OrderDto } from "@/lib/api/dto";
-
-const schema = ChangeOrderScholarshipSchema;
-
-export type ChangeOrderScholarshipInput = z.infer<typeof schema>;
+import {
+  changeOrderScholarshipInputSchema,
+  type ChangeOrderScholarshipInput,
+} from "@/schemas/orders/change-order-scholarship.schema";
 
 /**
  * `PUT /v1/order/change` — Troca a bolsa de um pedido.
@@ -24,7 +18,7 @@ export async function changeOrderScholarship(
 ): Promise<ActionResult<OrderDto>> {
   return executeAction({
     input,
-    schema,
+    schema: changeOrderScholarshipInputSchema,
     auth: "required",
     successMessage: "Bolsa do pedido alterada.",
     revalidateTags: ["orders"],

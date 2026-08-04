@@ -4,10 +4,11 @@ import {
   S3Client,
   type S3ClientConfig,
 } from '@aws-sdk/client-s3';
-import { Injectable, Logger, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { buildObjectKey, sanitizeFileName } from '../../common/utils/file-signature.util';
 import type { StorageUploadInput, StoredFile } from './types/storage.types';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const DEFAULT_REGION = 'sa-east-1';
 
@@ -133,7 +134,7 @@ export class StorageService implements OnModuleDestroy {
     const bucket = this.configService.get<string>('AWS_S3_BUCKET');
 
     if (!bucket) {
-      throw new ServiceUnavailableException('storage-not-configured');
+      throw new AppException('storage-not-configured');
     }
 
     return bucket;

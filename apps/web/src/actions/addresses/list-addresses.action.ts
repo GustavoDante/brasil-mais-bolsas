@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { AddressDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListAddressesInput = z.infer<typeof schema>;
+import { listAddressesInputSchema } from "@/schemas/addresses/list-addresses.schema";
 
 /**
  * `GET /v1/addresses` — Lista os endereços cadastrados.
@@ -15,11 +11,11 @@ export type ListAddressesInput = z.infer<typeof schema>;
 export async function listAddresses(): Promise<ActionResult<AddressDto[]>> {
   return executeAction({
     input: {},
-    schema,
+    schema: listAddressesInputSchema,
     auth: "optional",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; addresses: AddressDto[] }>("/addresses", {
-        token,
-      }).then((response) => response.addresses),
+        token
+      }).then((response) => response.addresses)
   });
 }

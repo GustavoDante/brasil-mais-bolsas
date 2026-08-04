@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -22,6 +21,7 @@ import {
   UpdateSellerDto,
 } from './dto/sellers.dto';
 import { SellersService } from './sellers.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @ApiTags('Sellers')
 @Controller('sellers')
@@ -32,7 +32,7 @@ export class SellersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async create(@Body() createSellerDto: CreateSellerDto, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.sellersService.create(createSellerDto);
     return { ok: true, message: 'seller-created' };
   }
@@ -41,7 +41,7 @@ export class SellersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findAll(@Query() query: SellersQueryDto, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const sellers = await this.sellersService.findAll(query);
     return { ok: true, sellers };
   }
@@ -56,7 +56,7 @@ export class SellersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const seller = await this.sellersService.findOne(id);
     return { ok: true, seller };
   }
@@ -69,7 +69,7 @@ export class SellersController {
     @Body() updateSellerDto: UpdateSellerDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.sellersService.update(id, updateSellerDto);
     return { ok: true, message: 'seller-updated' };
   }
@@ -78,7 +78,7 @@ export class SellersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.sellersService.remove(id);
     return { ok: true, message: 'seller-deleted' };
   }
@@ -87,7 +87,7 @@ export class SellersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async toggle(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.sellersService.toggleActive(id);
     return { ok: true, message: 'seller-toggled' };
   }

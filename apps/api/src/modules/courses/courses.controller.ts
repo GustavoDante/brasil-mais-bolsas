@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -26,6 +25,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { JwtUser } from '../auth/strategies/jwt.strategy';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto, UpdateCourseDto } from './dto/courses.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type JwtRequest = Request & { user: JwtUser };
 
@@ -98,7 +98,7 @@ export class CoursesController {
   @ApiBody({ type: CreateCourseDto })
   @ApiResponse({ status: 201, description: 'course-created' })
   async create(@Body() dto: CreateCourseDto, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.coursesService.create(dto);
     return { ok: true, message: 'course-created' };
   }
@@ -111,7 +111,7 @@ export class CoursesController {
   @ApiBody({ type: UpdateCourseDto })
   @ApiResponse({ status: 200, description: 'course-updated' })
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.coursesService.update(id, dto);
     return { ok: true, message: 'course-updated' };
   }
@@ -123,7 +123,7 @@ export class CoursesController {
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'course-deleted' })
   async remove(@Param('id') id: string, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.coursesService.softDelete(id);
     return { ok: true, message: 'course-deleted' };
   }
@@ -135,7 +135,7 @@ export class CoursesController {
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'course-toggled' })
   async toggle(@Param('id') id: string, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.coursesService.toggleActive(id);
     return { ok: true, message: 'course-toggled' };
   }

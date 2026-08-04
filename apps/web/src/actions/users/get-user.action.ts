@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { UserDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id do usuário"),
-});
-
-export type GetUserInput = z.infer<typeof schema>;
+import {
+  getUserInputSchema,
+  type GetUserInput,
+} from "@/schemas/users/get-user.schema";
 
 /**
  * `GET /v1/users/:id` — Busca um usuário pelo id.
@@ -21,7 +18,7 @@ export async function getUser(
 ): Promise<ActionResult<UserDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getUserInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<UserDto>(`/users/${encodeURIComponent(id)}`, {

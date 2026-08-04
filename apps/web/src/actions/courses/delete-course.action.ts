@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id do curso"),
-});
-
-export type DeleteCourseInput = z.infer<typeof schema>;
+import {
+  deleteCourseInputSchema,
+  type DeleteCourseInput,
+} from "@/schemas/courses/delete-course.schema";
 
 /**
  * `DELETE /v1/courses/:id` — Remove um curso (admin).
@@ -20,7 +17,7 @@ export async function deleteCourse(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteCourseInputSchema,
     auth: "required",
     successMessage: "Curso removido.",
     revalidateTags: ["courses"],

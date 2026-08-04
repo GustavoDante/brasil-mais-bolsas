@@ -2,9 +2,7 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
-  NotFoundException,
   Param,
   ParseFilePipe,
   Patch,
@@ -39,6 +37,7 @@ import type { JwtUser } from '../auth/strategies/jwt.strategy';
 import { InstitutionListResponseDto, InstitutionResponseDto } from './dto/institution-response.dto';
 import { CreateInstitutionDto, UpdateInstitutionDto } from './dto/institutions.dto';
 import { InstitutionsService } from './institutions.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type JwtRequest = Request & { user: JwtUser };
 
@@ -111,7 +110,7 @@ export class InstitutionsController {
   @ApiResponse({ status: 404, description: 'Institution not found' })
   async findById(@Param('id') id: string): Promise<{ institution: InstitutionResponseDto }> {
     const institution = await this.institutionsService.findById(id);
-    if (!institution) throw new NotFoundException('Institution not found');
+    if (!institution) throw new AppException('institution-not-found');
     return { institution };
   }
 
@@ -122,7 +121,7 @@ export class InstitutionsController {
   @ApiResponse({ status: 404, description: 'Institution not found' })
   async findByOldId(@Param('id') id: string): Promise<{ institution: InstitutionResponseDto }> {
     const institution = await this.institutionsService.findByOldId(id);
-    if (!institution) throw new NotFoundException('Institution not found');
+    if (!institution) throw new AppException('institution-not-found');
     return { institution };
   }
 
@@ -146,7 +145,7 @@ export class InstitutionsController {
     @Req() req: JwtRequest,
     @UploadedFile(institutionImagePipe) image?: UploadedFileData,
   ) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.institutionsService.create(dto, image);
     return { ok: true, message: 'institution-created' };
   }
@@ -173,7 +172,7 @@ export class InstitutionsController {
     @Req() req: JwtRequest,
     @UploadedFile(institutionImagePipe) image?: UploadedFileData,
   ) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.institutionsService.update(id, dto, image);
     return { ok: true, message: 'institution-updated' };
   }
@@ -184,7 +183,7 @@ export class InstitutionsController {
   @ApiResponse({ status: 200, description: 'institution-toggled' })
   @ApiResponse({ status: 403, description: 'unauthorized' })
   async toggle(@Param('id') id: string, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.institutionsService.toggleActive(id);
     return { ok: true, message: 'institution-toggled' };
   }
@@ -195,7 +194,7 @@ export class InstitutionsController {
   @ApiResponse({ status: 200, description: 'institution-deleted' })
   @ApiResponse({ status: 403, description: 'unauthorized' })
   async remove(@Param('id') id: string, @Req() req: JwtRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.institutionsService.softDelete(id);
     return { ok: true, message: 'institution-deleted' };
   }

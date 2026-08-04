@@ -1,8 +1,8 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { User } from '@repo/db';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const mockUser: User = {
   id: 'user-id-1',
@@ -74,8 +74,8 @@ describe('UsersController', () => {
       expect(result.users).toHaveLength(1);
     });
 
-    it('deve lancar ForbiddenException para nao-admin', async () => {
-      await expect(controller.findAll(makeReq(userJwt))).rejects.toThrow(ForbiddenException);
+    it('deve lancar AppException 403 para nao-admin', async () => {
+      await expect(controller.findAll(makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -90,10 +90,10 @@ describe('UsersController', () => {
       expect(result.id).toBe(mockUser.id);
     });
 
-    it('deve lancar NotFoundException se o usuario nao existir', async () => {
+    it('deve lancar AppException 404 se o usuario nao existir', async () => {
       usersService.findByIdWithAddress.mockResolvedValue(null);
 
-      await expect(controller.getMe(makeReq(userJwt))).rejects.toThrow(NotFoundException);
+      await expect(controller.getMe(makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 
@@ -114,10 +114,8 @@ describe('UsersController', () => {
       expect(result.id).toBe(mockUser.id);
     });
 
-    it('deve lancar ForbiddenException se usuario tentar acessar outro id', async () => {
-      await expect(controller.findOne('outro-id', makeReq(userJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+    it('deve lancar AppException 403 se usuario tentar acessar outro id', async () => {
+      await expect(controller.findOne('outro-id', makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -132,10 +130,8 @@ describe('UsersController', () => {
       expect(usersService.create).toHaveBeenCalledWith(dto);
     });
 
-    it('deve lancar ForbiddenException para nao-admin', async () => {
-      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+    it('deve lancar AppException 403 para nao-admin', async () => {
+      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -148,10 +144,8 @@ describe('UsersController', () => {
       expect(result.active).toBe(false);
     });
 
-    it('deve lancar ForbiddenException para nao-admin', async () => {
-      await expect(controller.toggle(mockUser.id, makeReq(userJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+    it('deve lancar AppException 403 para nao-admin', async () => {
+      await expect(controller.toggle(mockUser.id, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 
@@ -165,10 +159,8 @@ describe('UsersController', () => {
       expect(usersService.softDelete).toHaveBeenCalledWith(mockUser.id);
     });
 
-    it('deve lancar ForbiddenException para nao-admin', async () => {
-      await expect(controller.remove(mockUser.id, makeReq(userJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+    it('deve lancar AppException 403 para nao-admin', async () => {
+      await expect(controller.remove(mockUser.id, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
   });
 });

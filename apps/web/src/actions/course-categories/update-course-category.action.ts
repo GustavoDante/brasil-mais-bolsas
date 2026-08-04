@@ -1,18 +1,11 @@
 "use server";
 
-import { UpdateCourseCategorySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = UpdateCourseCategorySchema.extend({ id: zId("Informe o id da categoria") });
-
-export type UpdateCourseCategoryInput = z.infer<typeof schema>;
+import {
+  updateCourseCategoryInputSchema,
+  type UpdateCourseCategoryInput,
+} from "@/schemas/course-categories/update-course-category.schema";
 
 /**
  * `PUT /v1/course-categories/:id` — Atualiza uma categoria de curso (admin).
@@ -24,7 +17,7 @@ export async function updateCourseCategory(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: updateCourseCategoryInputSchema,
     auth: "required",
     successMessage: "Categoria atualizada.",
     revalidateTags: ["course-categories"],

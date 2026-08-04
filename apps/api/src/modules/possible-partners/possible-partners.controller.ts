@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -18,6 +17,7 @@ import {
   CreatePossiblePartnerDto,
 } from './dto/possible-partners.dto';
 import { PossiblePartnersService } from './possible-partners.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @ApiTags('Possible Partners')
 @Controller('possible-partners')
@@ -39,7 +39,7 @@ export class PossiblePartnersController {
   @ApiOperation({ summary: 'Lista leads de parceria (Apenas Admin)' })
   async findAll(@Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const possiblePartners = await this.possiblePartnersService.findAll();
@@ -52,7 +52,7 @@ export class PossiblePartnersController {
   @ApiOperation({ summary: 'Busca um lead de parceria por id (Apenas Admin)' })
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const possiblePartner = await this.possiblePartnersService.findOne(id);
@@ -65,7 +65,7 @@ export class PossiblePartnersController {
   @ApiOperation({ summary: 'Registra uma chamada de lead de parceria (Admin ou Manager)' })
   async createCall(@Body() dto: CreatePossiblePartnerCallDto, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const call = await this.possiblePartnersService.createCall(req.user.userId, dto);
@@ -79,7 +79,7 @@ export class PossiblePartnersController {
   @ApiOperation({ summary: 'Remove uma chamada de lead de parceria (Apenas Admin)' })
   async removeCall(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     await this.possiblePartnersService.removeCall(id);

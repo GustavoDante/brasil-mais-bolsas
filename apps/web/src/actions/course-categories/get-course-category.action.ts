@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CourseCategoryDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id da categoria"),
-});
-
-export type GetCourseCategoryInput = z.infer<typeof schema>;
+import {
+  getCourseCategoryInputSchema,
+  type GetCourseCategoryInput,
+} from "@/schemas/course-categories/get-course-category.schema";
 
 /**
  * `GET /v1/course-categories/:id` — Busca uma categoria pelo id.
@@ -21,7 +18,7 @@ export async function getCourseCategory(
 ): Promise<ActionResult<CourseCategoryDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getCourseCategoryInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; courseCategory: CourseCategoryDto }>(

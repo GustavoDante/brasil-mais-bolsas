@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { MinorDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListMinorsInput = z.infer<typeof schema>;
+import { listMinorsInputSchema } from "@/schemas/minors/list-minors.schema";
 
 /**
  * `GET /v1/minors` — Lista os dependentes cadastrados.
@@ -17,11 +13,11 @@ export type ListMinorsInput = z.infer<typeof schema>;
 export async function listMinors(): Promise<ActionResult<MinorDto[]>> {
   return executeAction({
     input: {},
-    schema,
+    schema: listMinorsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; minors: MinorDto[] }>("/minors", {
-        token,
-      }).then((response) => response.minors),
+        token
+      }).then((response) => response.minors)
   });
 }

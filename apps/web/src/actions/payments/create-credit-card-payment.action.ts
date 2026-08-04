@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateCreditCardPaymentSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PaymentResultDto } from "@/lib/api/dto";
-
-const schema = CreateCreditCardPaymentSchema;
-
-export type CreateCreditCardPaymentInput = z.infer<typeof schema>;
+import {
+  createCreditCardPaymentInputSchema,
+  type CreateCreditCardPaymentInput,
+} from "@/schemas/payments/create-credit-card-payment.schema";
 
 /**
  * `POST /v1/payment/credit_card` — Cria um pagamento com cartão de crédito.
@@ -24,7 +18,7 @@ export async function createCreditCardPayment(
 ): Promise<ActionResult<PaymentResultDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createCreditCardPaymentInputSchema,
     auth: "required",
     successMessage: "Pagamento processado.",
     revalidateTags: ["orders", "payments"],

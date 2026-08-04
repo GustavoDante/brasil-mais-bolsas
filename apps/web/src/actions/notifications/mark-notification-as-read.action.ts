@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { NotificationDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id da notificação"),
-});
-
-export type MarkNotificationAsReadInput = z.infer<typeof schema>;
+import {
+  markNotificationAsReadInputSchema,
+  type MarkNotificationAsReadInput,
+} from "@/schemas/notifications/mark-notification-as-read.schema";
 
 /**
  * `PATCH /v1/notifications/:id/read` — Marca uma notificação como lida.
@@ -21,7 +18,7 @@ export async function markNotificationAsRead(
 ): Promise<ActionResult<NotificationDto>> {
   return executeAction({
     input,
-    schema,
+    schema: markNotificationAsReadInputSchema,
     auth: "required",
     revalidateTags: ["notifications"],
     run: ({ id }, { token }) =>

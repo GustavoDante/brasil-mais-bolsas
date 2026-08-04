@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CreateAccessDto } from './dto/access.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class AccessService {
@@ -8,7 +9,7 @@ export class AccessService {
 
   async create(dto: CreateAccessDto) {
     const partner = await this.prisma.partner.findUnique({ where: { id: dto.partner_id } });
-    if (!partner) throw new BadRequestException('partner-not-found');
+    if (!partner) throw new AppException('partner-not-found');
 
     return this.prisma.access.create({ data: { partner_id: partner.id } });
   }

@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CourseDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id da instituição"),
-});
-
-export type ListCoursesByInstitutionInput = z.infer<typeof schema>;
+import {
+  listCoursesByInstitutionInputSchema,
+  type ListCoursesByInstitutionInput,
+} from "@/schemas/courses/list-courses-by-institution.schema";
 
 /**
  * `GET /v1/courses/institution/:id` — Lista os cursos oferecidos por uma instituição.
@@ -19,7 +16,7 @@ export async function listCoursesByInstitution(
 ): Promise<ActionResult<CourseDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listCoursesByInstitutionInputSchema,
     auth: "none",
     run: ({ id }) =>
       apiRequest<{ ok: boolean; courses: CourseDto[] }>(

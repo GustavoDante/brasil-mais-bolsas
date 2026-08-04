@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ExternalClientDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListExternalClientsInput = z.infer<typeof schema>;
+import { listExternalClientsInputSchema } from "@/schemas/external-clients/list-external-clients.schema";
 
 /**
  * `GET /v1/external-clients` — Lista os clientes do gateway.
@@ -19,12 +15,12 @@ export async function listExternalClients(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listExternalClientsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; clients: ExternalClientDto[] }>(
         "/external-clients",
         { token },
-      ).then((response) => response.clients),
+      ).then((response) => response.clients)
   });
 }

@@ -1,27 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalText,
-  zStringArray,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScholarshipFullDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  alreadyListed: zStringArray(),
-  type: zOptionalText(),
-  institution: zOptionalText(),
-  city: zOptionalText(),
-  category: zOptionalText(),
-  course: zOptionalText(),
-  showExpired: zOptionalText(),
-  showInativas: zOptionalText(),
-});
-
-export type ListOrderedScholarshipsInput = z.infer<typeof schema>;
+import {
+  listOrderedScholarshipsInputSchema,
+  type ListOrderedScholarshipsInput,
+} from "@/schemas/scholarships/list-ordered-scholarships.schema";
 
 /**
  * `GET /v1/scholarships/list/order` — Bolsas ordenadas por categoria, com filtros do site.
@@ -31,7 +16,7 @@ export async function listOrderedScholarships(
 ): Promise<ActionResult<ScholarshipFullDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listOrderedScholarshipsInputSchema,
     auth: "none",
     run: ({
       alreadyListed,

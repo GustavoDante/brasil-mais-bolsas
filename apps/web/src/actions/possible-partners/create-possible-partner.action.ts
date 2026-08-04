@@ -1,18 +1,12 @@
 "use server";
 
-import { CreatePossiblePartnerSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PossiblePartnerDto } from "@/lib/api/dto";
-
-const schema = CreatePossiblePartnerSchema;
-
-export type CreatePossiblePartnerInput = z.infer<typeof schema>;
+import {
+  createPossiblePartnerInputSchema,
+  type CreatePossiblePartnerInput,
+} from "@/schemas/possible-partners/create-possible-partner.schema";
 
 /**
  * `POST /v1/possible-partners` — Envia o formulário "quero ser parceiro".
@@ -22,7 +16,7 @@ export async function createPossiblePartner(
 ): Promise<ActionResult<PossiblePartnerDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createPossiblePartnerInputSchema,
     auth: "none",
     successMessage: "Recebemos seu contato. Em breve falaremos com você.",
     revalidateTags: ["possible-partners"],

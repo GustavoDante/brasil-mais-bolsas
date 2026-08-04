@@ -3,6 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { cleanupOpenApiDoc, ZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module';
+import { ApiErrorDto } from './common/dto/api-error.dto';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
@@ -39,7 +40,9 @@ async function bootstrap() {
   // decorators de class-validator), apagaria todos os campos antes do Zod rodar.
   app.useGlobalPipes(new ZodValidationPipe());
 
-  // Filtro global de exceções — padroniza erros e evita vazar stack traces
+  // Filtro global de exceções. Toda falha sai daqui como `{ ok: false, code, message }`,
+  // com código e texto vindos do `ERROR_CATALOG` de `@repo/contracts` — o frontend exibe a
+  // mensagem como veio e decide comportamento pelo código.
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const enableSwagger =
@@ -52,7 +55,11 @@ async function bootstrap() {
       .setVersion('1.0.0')
       .addBearerAuth()
       .build();
-    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    const document = SwaggerModule.createDocument(app, swaggerConfig, {
+      // O corpo de erro é o mesmo em todas as rotas e não aparece em nenhum handler —
+      // sem isto, `/docs` documentaria só os caminhos de sucesso.
+      extraModels: [ApiErrorDto],
+    });
     // `cleanupOpenApiDoc` converte os schemas Zod para OpenAPI. Sem ele os `ZodDto`
     // aparecem vazios em /docs.
     SwaggerModule.setup('docs', app, cleanupOpenApiDoc(document));

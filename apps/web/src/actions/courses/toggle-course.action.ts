@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id do curso"),
-});
-
-export type ToggleCourseInput = z.infer<typeof schema>;
+import {
+  toggleCourseInputSchema,
+  type ToggleCourseInput,
+} from "@/schemas/courses/toggle-course.schema";
 
 /**
  * `PATCH /v1/courses/:id/toggle` — Ativa/desativa um curso (admin).
@@ -20,7 +17,7 @@ export async function toggleCourse(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: toggleCourseInputSchema,
     auth: "required",
     successMessage: "Curso atualizado.",
     revalidateTags: ["courses"],

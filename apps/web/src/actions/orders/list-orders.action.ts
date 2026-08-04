@@ -1,18 +1,12 @@
 "use server";
 
-import { OrderListQuerySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { OrderDto } from "@/lib/api/dto";
-
-const schema = OrderListQuerySchema;
-
-export type ListOrdersInput = z.infer<typeof schema>;
+import {
+  listOrdersInputSchema,
+  type ListOrdersInput,
+} from "@/schemas/orders/list-orders.schema";
 
 /**
  * `GET /v1/order` — Lista pedidos com filtros e paginação.
@@ -24,7 +18,7 @@ export async function listOrders(
 ): Promise<ActionResult<OrderDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listOrdersInputSchema,
     auth: "required",
     run: ({ user_id, expired, is_renew, defaulter, page, limit }, { token }) =>
       apiRequest<{ ok: boolean; orders: OrderDto[] }>("/order", {

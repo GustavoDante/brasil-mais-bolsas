@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateNotificationSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { NotificationDto } from "@/lib/api/dto";
-
-const schema = CreateNotificationSchema;
-
-export type CreateNotificationInput = z.infer<typeof schema>;
+import {
+  createNotificationInputSchema,
+  type CreateNotificationInput,
+} from "@/schemas/notifications/create-notification.schema";
 
 /**
  * `POST /v1/notifications` — Cria uma notificação para um usuário (admin).
@@ -24,7 +18,7 @@ export async function createNotification(
 ): Promise<ActionResult<NotificationDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createNotificationInputSchema,
     auth: "required",
     successMessage: "Notificação criada.",
     revalidateTags: ["notifications"],

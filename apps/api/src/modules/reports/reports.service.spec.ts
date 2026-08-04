@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { ReportsService } from './reports.service';
@@ -168,7 +167,7 @@ describe('ReportsService', () => {
     it('deve lançar erro quando a ordem não existir', async () => {
       prisma.order.findFirst.mockResolvedValue(null);
 
-      await expect(service.getPayments('order-1', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(service.getPayments('order-1', 'user-1')).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 });

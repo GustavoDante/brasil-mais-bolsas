@@ -2,9 +2,10 @@
  * Erros normalizados da API.
  *
  * O `AllExceptionsFilter` do backend responde sempre no formato
- * `{ statusCode, timestamp, path, message }` — o `ApiError` espelha isso e ainda cobre
- * falhas de rede e timeout, que não têm resposta HTTP.
+ * `{ ok: false, code, message, statusCode, timestamp, path, fieldErrors? }` — o `ApiError`
+ * espelha isso e ainda cobre falhas de rede e timeout, que não têm resposta HTTP.
  */
+import { ERROR_CATALOG, errorCodeForStatus } from "@repo/contracts";
 
 export type ApiErrorKind = "http" | "network" | "timeout" | "parse";
 
@@ -65,8 +66,12 @@ export function isApiError(error: unknown): error is ApiError {
 }
 
 /**
- * Mensagem pronta para exibir ao usuário. A API devolve slugs técnicos
- * (`user-not-found`) e, em alguns casos, `userMessage` em português.
+ * Mensagem pronta para exibir ao usuário — a que a API mandou.
+ *
+ * O texto de cada erro é definido uma vez só, no `ERROR_CATALOG` de `@repo/contracts`, e
+ * chega serializado na resposta. Aqui não há tradução de código em mensagem: só o
+ * transporte (rede/timeout) e a resposta sem corpo nosso precisam de texto local, e mesmo
+ * esse último vem do catálogo, não de uma segunda lista.
  */
 export function toUserMessage(
   error: unknown,
@@ -79,14 +84,10 @@ export function toUserMessage(
 
   const body = error.body;
   if (body && typeof body === "object") {
-    const userMessage = (body as { userMessage?: unknown }).userMessage;
-    if (typeof userMessage === "string" && userMessage.length > 0) return userMessage;
+    const { message } = body as { message?: unknown };
+    if (typeof message === "string" && message.length > 0) return message;
   }
 
-  if (error.isRateLimited) return "Muitas tentativas. Aguarde um minuto e tente novamente.";
-  if (error.isUnauthorized) return "Sessão expirada. Faça login novamente.";
-  if (error.isForbidden) return "Você não tem permissão para esta ação.";
-  if (error.isNotFound) return "Registro não encontrado.";
-
-  return fallback;
+  // Resposta sem o nosso corpo (proxy, balanceador). Só o status é confiável.
+  return error.status > 0 ? ERROR_CATALOG[errorCodeForStatus(error.status)].message : fallback;
 }

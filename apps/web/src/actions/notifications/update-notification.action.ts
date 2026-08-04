@@ -1,19 +1,12 @@
 "use server";
 
-import { UpdateNotificationSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { NotificationDto } from "@/lib/api/dto";
-
-const schema = UpdateNotificationSchema.extend({ id: zId("Informe o id da notificação") });
-
-export type UpdateNotificationInput = z.infer<typeof schema>;
+import {
+  updateNotificationInputSchema,
+  type UpdateNotificationInput,
+} from "@/schemas/notifications/update-notification.schema";
 
 /**
  * `PATCH /v1/notifications/:id` — Atualiza uma notificação.
@@ -25,7 +18,7 @@ export async function updateNotification(
 ): Promise<ActionResult<NotificationDto>> {
   return executeAction({
     input,
-    schema,
+    schema: updateNotificationInputSchema,
     auth: "required",
     successMessage: "Notificação atualizada.",
     revalidateTags: ["notifications"],

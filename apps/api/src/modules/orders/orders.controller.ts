@@ -1,15 +1,4 @@
-import {
-  Body,
-  Controller,
-  ForbiddenException,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -31,6 +20,7 @@ import {
   UpdateOrderDefaulterDto,
 } from './dto/orders.dto';
 import { OrdersService } from './orders.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type OrderRequest = Request & {
   user: JwtUser & { institution_id?: string | null };
@@ -49,7 +39,7 @@ export class OrdersController {
   @ApiResponse({ status: 201, description: 'Pedido criado.' })
   @ApiResponse({ status: 403, description: 'Nao autorizado.' })
   create(@Body() dto: CreateOrderDto, @Req() req: OrderRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     return this.ordersService.create(dto);
   }
 
@@ -100,7 +90,7 @@ export class OrdersController {
   @ApiBody({ type: ChangeOrderScholarshipDto })
   @ApiResponse({ status: 200, description: 'Pedido atualizado.' })
   async changeScholarship(@Body() dto: ChangeOrderScholarshipDto, @Req() req: OrderRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const order = await this.ordersService.changeScholarship(dto);
     return { ok: true, order };
   }

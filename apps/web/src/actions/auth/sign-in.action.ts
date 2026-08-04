@@ -1,24 +1,17 @@
 "use server";
 
-import { z } from "zod";
 import {
   executeAction,
   formDataToObject,
-  zEmail,
-  zPassword,
   type ActionResult,
 } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { AuthResponseDto, UserSafeDto } from "@/lib/api/dto";
 import { clearSessionToken, setSessionToken } from "@/lib/api/session";
-
-const schema = z.object({
-  email: zEmail(),
-  // A API aceita a senha ou o CPF (somente dígitos) do aluno.
-  password: zPassword("Informe a senha ou o CPF"),
-});
-
-export type SignInInput = z.infer<typeof schema>;
+import {
+  signInInputSchema,
+  type SignInInput,
+} from "@/schemas/auth/sign-in.schema";
 
 /**
  * `POST /v1/auth/login` — autentica e **grava a sessão** no cookie httpOnly.
@@ -31,7 +24,7 @@ export async function signIn(
 ): Promise<ActionResult<UserSafeDto>> {
   return executeAction({
     input,
-    schema,
+    schema: signInInputSchema,
     auth: "none",
     successMessage: "Login realizado.",
     run: async ({ email, password }) => {

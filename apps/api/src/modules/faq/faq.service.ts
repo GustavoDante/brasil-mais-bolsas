@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CreateFaqDto, UpdateFaqDto } from './dto/faq.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class FaqService {
@@ -28,7 +29,7 @@ export class FaqService {
     });
 
     if (!faq || faq.delete) {
-      throw new NotFoundException('faq-not-found');
+      throw new AppException('faq-not-found');
     }
 
     return faq;

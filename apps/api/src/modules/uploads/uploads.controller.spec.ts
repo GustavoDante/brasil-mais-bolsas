@@ -1,4 +1,3 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { UploadedFileData } from '../../common/types/uploaded-file.type';
 import { UploadsController } from './uploads.controller';
@@ -87,7 +86,7 @@ describe('UploadsController', () => {
     it('deve barrar remocao para usuario comum', async () => {
       await expect(
         controller.remove({ key: 'misc/2026/07/arquivo.png' }, makeReq(userJwt)),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toMatchObject({ httpStatus: 403 });
       expect(service.remove).not.toHaveBeenCalled();
     });
   });

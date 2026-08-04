@@ -1,11 +1,7 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CreateNotificationDto, UpdateNotificationDto } from './dto/notifications.dto';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @Injectable()
 export class NotificationsService {
@@ -18,7 +14,7 @@ export class NotificationsService {
     });
 
     if (!user) {
-      throw new BadRequestException('invalid-user');
+      throw new AppException('invalid-user');
     }
 
     return user;
@@ -50,7 +46,7 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new NotFoundException('notification-not-found');
+      throw new AppException('notification-not-found');
     }
 
     return notification;
@@ -78,7 +74,7 @@ export class NotificationsService {
     const notification = await this.findOne(id);
 
     if (!isAdmin && notification.user_id !== userId) {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     return this.prisma.notification.update({
@@ -91,7 +87,7 @@ export class NotificationsService {
     const notification = await this.findOne(id);
 
     if (!isAdmin && notification.user_id !== userId) {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     return this.prisma.notification.delete({

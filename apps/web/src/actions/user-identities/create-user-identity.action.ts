@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateUserIdentitySchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { UserIdentityDto } from "@/lib/api/dto";
-
-const schema = CreateUserIdentitySchema;
-
-export type CreateUserIdentityInput = z.infer<typeof schema>;
+import {
+  createUserIdentityInputSchema,
+  type CreateUserIdentityInput,
+} from "@/schemas/user-identities/create-user-identity.schema";
 
 /**
  * `POST /v1/user-identities` — Vincula uma identidade externa (login social) a um usuário.
@@ -24,7 +18,7 @@ export async function createUserIdentity(
 ): Promise<ActionResult<UserIdentityDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createUserIdentityInputSchema,
     auth: "required",
     successMessage: "Identidade vinculada.",
     revalidateTags: ["user-identities"],

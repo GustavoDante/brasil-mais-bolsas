@@ -1,18 +1,11 @@
 "use server";
 
-import { UpdateScholarshipSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = UpdateScholarshipSchema.extend({ id: zId("Informe o id da bolsa") });
-
-export type UpdateScholarshipInput = z.infer<typeof schema>;
+import {
+  updateScholarshipInputSchema,
+  type UpdateScholarshipInput,
+} from "@/schemas/scholarships/update-scholarship.schema";
 
 /**
  * `PUT /v1/scholarships/:id` — Atualiza uma bolsa (admin).
@@ -24,7 +17,7 @@ export async function updateScholarship(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: updateScholarshipInputSchema,
     auth: "required",
     successMessage: "Bolsa atualizada.",
     revalidateTags: ["scholarships"],

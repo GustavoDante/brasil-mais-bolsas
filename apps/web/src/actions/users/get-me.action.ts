@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { UserDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type GetMeInput = z.infer<typeof schema>;
+import { getMeInputSchema } from "@/schemas/users/get-me.schema";
 
 /**
  * `GET /v1/users/me` — Dados completos do usuário autenticado.
@@ -17,9 +13,9 @@ export type GetMeInput = z.infer<typeof schema>;
 export async function getMe(): Promise<ActionResult<UserDto>> {
   return executeAction({
     input: {},
-    schema,
+    schema: getMeInputSchema,
     auth: "required",
     run: (_input, { token }) =>
-      apiRequest<UserDto>("/users/me", { token, revalidate: false }),
+      apiRequest<UserDto>("/users/me", { token, revalidate: false })
   });
 }

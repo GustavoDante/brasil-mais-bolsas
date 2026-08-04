@@ -1,13 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { SignedContractDto } from "@/lib/api/dto";
-
-const schema = z.object({});
-
-export type ListSignedContractsInput = z.infer<typeof schema>;
+import { listSignedContractsInputSchema } from "@/schemas/signed-contracts/list-signed-contracts.schema";
 
 /**
  * `GET /v1/signed-contracts` — Lista os contratos assinados.
@@ -19,12 +15,12 @@ export async function listSignedContracts(): Promise<
 > {
   return executeAction({
     input: {},
-    schema,
+    schema: listSignedContractsInputSchema,
     auth: "required",
     run: (_input, { token }) =>
       apiRequest<{ ok: boolean; items: SignedContractDto[] }>(
         "/signed-contracts",
         { token },
-      ).then((response) => response.items),
+      ).then((response) => response.items)
   });
 }

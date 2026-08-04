@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateCallSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { CallDto } from "@/lib/api/dto";
-
-const schema = CreateCallSchema;
-
-export type CreateCallInput = z.infer<typeof schema>;
+import {
+  createCallInputSchema,
+  type CreateCallInput,
+} from "@/schemas/calls/create-call.schema";
 
 /**
  * `POST /v1/calls` — Registra uma ligação para um usuário.
@@ -24,7 +18,7 @@ export async function createCall(
 ): Promise<ActionResult<CallDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createCallInputSchema,
     auth: "required",
     successMessage: "Ligação registrada.",
     revalidateTags: ["calls"],

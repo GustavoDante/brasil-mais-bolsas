@@ -1,17 +1,11 @@
 "use server";
 
-import { CreateSellerSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = CreateSellerSchema;
-
-export type CreateSellerInput = z.infer<typeof schema>;
+import {
+  createSellerInputSchema,
+  type CreateSellerInput,
+} from "@/schemas/sellers/create-seller.schema";
 
 /**
  * `POST /v1/sellers` — Cria um vendedor (admin).
@@ -23,7 +17,7 @@ export async function createSeller(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: createSellerInputSchema,
     auth: "required",
     successMessage: "Vendedor criado.",
     revalidateTags: ["sellers"],

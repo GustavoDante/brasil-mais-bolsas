@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { FaqService } from './faq.service';
@@ -37,6 +36,6 @@ describe('FaqService', () => {
   it('deve retornar erro quando faq não existir', async () => {
     prisma.faq.findUnique.mockResolvedValue(null);
 
-    await expect(service.findOne('faq-1')).rejects.toThrow(NotFoundException);
+    await expect(service.findOne('faq-1')).rejects.toMatchObject({ httpStatus: 404 });
   });
 });

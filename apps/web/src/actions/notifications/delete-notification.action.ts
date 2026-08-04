@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da notificação"),
-});
-
-export type DeleteNotificationInput = z.infer<typeof schema>;
+import {
+  deleteNotificationInputSchema,
+  type DeleteNotificationInput,
+} from "@/schemas/notifications/delete-notification.schema";
 
 /**
  * `DELETE /v1/notifications/:id` — Remove uma notificação.
@@ -20,7 +17,7 @@ export async function deleteNotification(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteNotificationInputSchema,
     auth: "required",
     successMessage: "Notificação removida.",
     revalidateTags: ["notifications"],

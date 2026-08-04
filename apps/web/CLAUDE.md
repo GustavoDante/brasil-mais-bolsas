@@ -66,7 +66,9 @@ src/
   types/                    # modelos de domínio usados pela UI
   hooks/                    # hooks de cliente (use-api-query, use-bolsas-query, ...)
   assets/                   # in-app SVG/icon components
-  schemas/                  # zod schemas (form validation)
+  schemas/                  # schemas zod de entrada — 1 schema + 1 tipo por arquivo
+    <módulo>/               #   espelha os módulos de actions/ (faq/update-faq.schema.ts)
+    *.schema.ts             #   na raiz, os que são só de UI (newsletter, filtros)
   mocks/                    # dados mockados, consumidos por src/data enquanto
                              #   NEXT_PUBLIC_USE_MOCKS != "false"
 scripts/                    # utilitários fora do build (check-api-integration.ts)
@@ -112,7 +114,10 @@ Camadas: `lib/api` (transporte/DTOs) → `lib/mappers` (DTO → modelo de UI) �
 - **Sessão:** token em cookie httpOnly; `@/lib/api/session` e `@/lib/api/server` são apenas
   servidor. Componente de cliente que precisa de dado autenticado passa por Server Action.
 - **Erros:** o cliente HTTP sempre lança `ApiError` (inclusive rede/timeout). Para texto de
-  interface use `toUserMessage(error)`.
+  interface use `toUserMessage(error)`, que devolve a `message` que a **API** mandou — o
+  texto de cada erro é definido em `packages/contracts/src/errors.ts`, não aqui. Não crie
+  dicionário de código → mensagem no frontend: era o que existia antes e divergiu do
+  backend nas duas direções.
 - **Cache:** leituras públicas usam ISR com as tags de `cacheTags`; autenticadas e mutações
   são `no-store`. Depois de escrever, invalide com `revalidateTag`.
 - **Ao alterar mapeamento ou adicionar recurso**, rode `npx tsx scripts/check-api-integration.ts`
@@ -126,26 +131,36 @@ Camadas: `lib/api` (transporte/DTOs) → `lib/mappers` (DTO → modelo de UI) �
 - **Resultado padronizado:** `ActionResult<T>` = `{ ok: true, data, message? }` ou
   `{ ok: false, error: { code, message, status, fieldErrors? } }`. Action nunca lança para
   o cliente e nunca devolve o envelope cru da API (`{ ok, users }` etc.) — só o dado útil.
-- **Erro padronizado:** `code` é o slug do backend (estável, use-o em `if`); `message` é
-  pt-BR pronto para exibir. Traduções em `_core/action-error.ts`; código desconhecido cai
-  em fallback por status e, por fim, em `unknown-error`. Texto técnico do backend nunca
-  vai para a tela (fica em `details`).
-- **Validação: o schema vem de `@repo/contracts`, não é escrito aqui.** É literalmente o
-  mesmo objeto Zod que o NestJS usa para validar a requisição — não há mais "espelhar os
-  decorators do backend".
+- **Erro padronizado:** `code` é o `ErrorCode` de `@repo/contracts` (união de literais:
+  comparar com um código inexistente não compila); `message` é o texto que **a API mandou**,
+  pronto para exibir. `_core/action-error.ts` não traduz nada — só repassa, e define texto
+  apenas para as falhas em que não há resposta para repassar (rede, timeout, sem sessão).
+  Erro novo ⇒ entrada em `packages/contracts/src/errors.ts`, não aqui.
+- **`message` de sucesso é outra coisa.** O envelope da API traz slugs (`'call-created'`);
+  eles não são texto de interface. Confirmação de sucesso é presentação — o componente sabe
+  o que acabou de fazer e escreve a própria frase.
+- **O schema de entrada mora em `src/schemas/<módulo>/<rota>.schema.ts`**, um schema e um
+  tipo por arquivo, e a action o importa. Fora da action porque `@/actions/_core` arrasta
+  `cookies()` — um formulário de cliente não consegue importar de lá. Assim o mesmo objeto
+  alimenta o `zodResolver` do react-hook-form e o `executeAction`.
 
   ```ts
-  import { UpdateFaqSchema } from "@repo/contracts";
-  // o id vai no path, então entra por composição:
-  const schema = UpdateFaqSchema.extend({ id: zId("Informe o id da pergunta") });
+  // src/schemas/faq/update-faq.schema.ts
+  import { UpdateFaqSchema, zId } from "@repo/contracts";
+
+  export const updateFaqInputSchema = UpdateFaqSchema.extend({
+    id: zId("Informe o id da pergunta"),
+  });
+
+  export type UpdateFaqInput = z.infer<typeof updateFaqInputSchema>;
   ```
 
-  Precisa de campo novo? Edite o schema em `packages/contracts/src/<módulo>`, e os dois
-  apps passam a exigi-lo. Só declare `z.object` local quando a entrada for exclusiva do
-  frontend (path param de rota de leitura, filtro de tela) — nunca redeclarando um corpo
-  de requisição que a API já define.
-- Os blocos (`zEmail`, `zText`, `zId`…) continuam vindo de `@/actions/_core`, que agora só
-  reexporta de `@repo/contracts`.
+  Arquivo de schema depende **só** de `zod` e `@repo/contracts` — nunca de `@/actions/_core`.
+- **A regra de validação vem de `@repo/contracts`, não é escrita aqui.** É literalmente o
+  mesmo objeto Zod que o NestJS usa para validar a requisição. Campo novo? Edite
+  `packages/contracts/src/<módulo>` e os dois apps passam a exigi-lo. Só declare `z.object`
+  local quando a entrada for exclusiva do frontend (path param de rota de leitura, filtro
+  de tela) — nunca redeclarando um corpo de requisição que a API já define.
 - **Sessão:** `auth: "required" | "optional" | "none"` no `executeAction` — nunca leia
   cookie dentro da action.
 - **Mutação:** declare `revalidateTags` para invalidar o cache (o core chama `updateTag`).

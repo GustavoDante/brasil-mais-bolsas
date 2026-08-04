@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id do acesso"),
-});
-
-export type DeleteAccessInput = z.infer<typeof schema>;
+import {
+  deleteAccessInputSchema,
+  type DeleteAccessInput,
+} from "@/schemas/access/delete-access.schema";
 
 /**
  * `DELETE /v1/access/:id` — Remove um acesso.
@@ -20,7 +17,7 @@ export async function deleteAccess(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteAccessInputSchema,
     auth: "required",
     successMessage: "Acesso removido.",
     revalidateTags: ["accesses"],

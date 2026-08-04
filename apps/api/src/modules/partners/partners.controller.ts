@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -24,6 +23,7 @@ import {
   UpdatePartnerDto,
 } from './dto/partners.dto';
 import { PartnersService } from './partners.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @ApiTags('Partners')
 @Controller('partners')
@@ -34,7 +34,7 @@ export class PartnersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async create(@Body() createPartnerDto: CreatePartnerDto, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.partnersService.create(createPartnerDto);
     return { ok: true, message: 'partner-created' };
   }
@@ -43,7 +43,7 @@ export class PartnersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findAll(@Query() query: PartnersQueryDto, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const partners = await this.partnersService.findAll(query);
     return { ok: true, partners };
   }
@@ -59,7 +59,7 @@ export class PartnersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     const partner = await this.partnersService.findOne(id);
     return { ok: true, partner };
   }
@@ -72,7 +72,7 @@ export class PartnersController {
     @Body() updatePartnerDto: UpdatePartnerDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.partnersService.update(id, updatePartnerDto);
     return { ok: true, message: 'partner-updated' };
   }
@@ -81,7 +81,7 @@ export class PartnersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.partnersService.remove(id);
     return { ok: true, message: 'partner-deleted' };
   }
@@ -90,7 +90,7 @@ export class PartnersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async toggle(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
     await this.partnersService.toggleActive(id);
     return { ok: true, message: 'partner-toggled' };
   }

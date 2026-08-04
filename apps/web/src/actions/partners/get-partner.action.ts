@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { PartnerDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id do parceiro"),
-});
-
-export type GetPartnerInput = z.infer<typeof schema>;
+import {
+  getPartnerInputSchema,
+  type GetPartnerInput,
+} from "@/schemas/partners/get-partner.schema";
 
 /**
  * `GET /v1/partners/id/:id` — Busca um parceiro pelo id.
@@ -21,7 +18,7 @@ export async function getPartner(
 ): Promise<ActionResult<PartnerDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getPartnerInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ ok: boolean; partner: PartnerDto }>(

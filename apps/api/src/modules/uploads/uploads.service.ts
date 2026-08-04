@@ -1,9 +1,10 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DEFAULT_UPLOAD_FOLDER, type UploadFolder } from '../../common/constants/upload.constants';
 import type { UploadedFileData } from '../../common/types/uploaded-file.type';
 import { detectFileType } from '../../common/utils/file-signature.util';
 import { StorageService } from '../../integrations/storage/storage.service';
 import type { StoredFile } from '../../integrations/storage/types/storage.types';
+import { AppException } from '../../common/exceptions/app.exception';
 
 /**
  * Ponto unico de entrada para subir arquivos ao bucket. Qualquer modulo que precise
@@ -23,7 +24,7 @@ export class UploadsService {
     // Rotas usam o SecureFileValidator antes de chegar aqui; esta checagem cobre chamadas
     // internas (jobs, scripts) e evita gravar no bucket um conteudo nao identificado.
     if (!detected) {
-      throw new UnprocessableEntityException('tipo-de-arquivo-nao-suportado');
+      throw new AppException('unsupported-file-type');
     }
 
     return this.storageService.upload({

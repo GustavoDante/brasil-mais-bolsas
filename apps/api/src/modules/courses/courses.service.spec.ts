@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { DurationType, type Course } from '@repo/db';
@@ -76,7 +75,7 @@ describe('CoursesService', () => {
           duration_type: DurationType.MONTHS,
           category_id: 'cat-1',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
   });
 
@@ -124,7 +123,7 @@ describe('CoursesService', () => {
 
     it('deve lançar erro se instituição não for encontrada', async () => {
       prisma.institution.findFirst.mockResolvedValue(null);
-      await expect(service.findByInstitutionName('Inexistente')).rejects.toThrow(NotFoundException);
+      await expect(service.findByInstitutionName('Inexistente')).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 
@@ -133,9 +132,7 @@ describe('CoursesService', () => {
       prisma.course.findUnique.mockResolvedValue(mockCourse);
       prisma.courseCategory.findUnique.mockResolvedValue(null);
 
-      await expect(service.update('id', { category_id: 'cat-2' })).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.update('id', { category_id: 'cat-2' })).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('deve atualizar curso corretamente', async () => {

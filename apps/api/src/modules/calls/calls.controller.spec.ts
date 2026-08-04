@@ -1,4 +1,3 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { CallsController } from './calls.controller';
 import { CallsService } from './calls.service';
@@ -48,6 +47,6 @@ describe('CallsController', () => {
   it('deve bloquear criação para não-admin', async () => {
     await expect(
       controller.create({ receiver_id: 'user-1', description: 'Descrição' }, makeReq(managerJwt)),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toMatchObject({ httpStatus: 403 });
   });
 });

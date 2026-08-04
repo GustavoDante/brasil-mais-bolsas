@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id do parceiro"),
-});
-
-export type DeletePartnerInput = z.infer<typeof schema>;
+import {
+  deletePartnerInputSchema,
+  type DeletePartnerInput,
+} from "@/schemas/partners/delete-partner.schema";
 
 /**
  * `DELETE /v1/partners/:id` — Remove um parceiro (admin).
@@ -20,7 +17,7 @@ export async function deletePartner(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deletePartnerInputSchema,
     auth: "required",
     successMessage: "Parceiro removido.",
     revalidateTags: ["partners"],

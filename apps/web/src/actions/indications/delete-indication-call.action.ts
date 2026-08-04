@@ -1,14 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
-
-const schema = z.object({
-  id: zId("Informe o id da ligação"),
-});
-
-export type DeleteIndicationCallInput = z.infer<typeof schema>;
+import {
+  deleteIndicationCallInputSchema,
+  type DeleteIndicationCallInput,
+} from "@/schemas/indications/delete-indication-call.schema";
 
 /**
  * `DELETE /v1/indications/call/:id` — Remove uma ligação de indicação (admin).
@@ -20,7 +17,7 @@ export async function deleteIndicationCall(
 ): Promise<ActionResult<null>> {
   return executeAction({
     input,
-    schema,
+    schema: deleteIndicationCallInputSchema,
     auth: "required",
     successMessage: "Ligação removida.",
     revalidateTags: ["indications"],

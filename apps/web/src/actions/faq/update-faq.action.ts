@@ -1,19 +1,12 @@
 "use server";
 
-import { UpdateFaqSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zId,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { FaqDto } from "@/lib/api/dto";
-
-const schema = UpdateFaqSchema.extend({ id: zId("Informe o id da pergunta") });
-
-export type UpdateFaqInput = z.infer<typeof schema>;
+import {
+  updateFaqInputSchema,
+  type UpdateFaqInput,
+} from "@/schemas/faq/update-faq.schema";
 
 /**
  * `PUT /v1/faq/:id` — Atualiza uma pergunta frequente (admin).
@@ -25,7 +18,7 @@ export async function updateFaq(
 ): Promise<ActionResult<FaqDto>> {
   return executeAction({
     input,
-    schema,
+    schema: updateFaqInputSchema,
     auth: "required",
     successMessage: "Pergunta atualizada.",
     revalidateTags: ["faq"],

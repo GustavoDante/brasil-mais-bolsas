@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   ParseFilePipe,
   Post,
   Query,
@@ -35,6 +34,7 @@ import type { JwtUser } from '../auth/strategies/jwt.strategy';
 import { DeleteFileResponseDto, UploadedFileResponseDto } from './dto/upload-response.dto';
 import { DeleteFileDto, UploadFileDto } from './dto/uploads.dto';
 import { UploadsService } from './uploads.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 type JwtRequest = Request & { user: JwtUser };
 
@@ -116,7 +116,7 @@ export class UploadsController {
     @Query() query: DeleteFileDto,
     @Req() req: JwtRequest,
   ): Promise<DeleteFileResponseDto> {
-    if (req.user.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user.type !== 'admin') throw new AppException('forbidden');
 
     await this.uploadsService.remove(query.key);
 

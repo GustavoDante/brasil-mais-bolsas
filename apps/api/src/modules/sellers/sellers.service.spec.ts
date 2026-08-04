@@ -1,7 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { SellersService } from './sellers.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const mockPrisma = {
   seller: {
@@ -28,11 +28,11 @@ describe('SellersService', () => {
   });
 
   describe('create', () => {
-    it('should throw BadRequestException if email exists', async () => {
+    it('should throw AppException 400 if email exists', async () => {
       mockPrisma.seller.findFirst.mockResolvedValueOnce({ id: '1' });
       await expect(
         service.create({ name: 'x', email: 'x@x.com', password: '123' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('should create seller if email is new', async () => {

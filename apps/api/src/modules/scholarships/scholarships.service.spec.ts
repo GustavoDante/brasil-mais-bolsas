@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Prisma } from '@repo/db';
 import { PrismaService } from '../../database/prisma/prisma.service';
@@ -75,9 +74,7 @@ describe('ScholarshipsService', () => {
   describe('create', () => {
     it('deve falhar se instituição for inválida', async () => {
       prisma.institution.findUnique.mockResolvedValue(null);
-      await expect(service.create({ institution_id: '1' } as CreateScholarshipDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.create({ institution_id: '1' } as CreateScholarshipDto)).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('deve falhar se curso for inválido', async () => {
@@ -85,7 +82,7 @@ describe('ScholarshipsService', () => {
       prisma.course.findUnique.mockResolvedValue(null);
       await expect(
         service.create({ institution_id: 'inst-1', course_id: 'course-1' } as CreateScholarshipDto),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('deve criar scholarship', async () => {
@@ -121,7 +118,7 @@ describe('ScholarshipsService', () => {
   describe('update', () => {
     it('deve falhar se nao existir', async () => {
       prisma.scholarship.findUnique.mockResolvedValue(null);
-      await expect(service.update('sch-1', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update('sch-1', {})).rejects.toMatchObject({ httpStatus: 404 });
     });
 
     it('deve atualizar o scholarship e setar expired baseado na qtd', async () => {
@@ -144,7 +141,7 @@ describe('ScholarshipsService', () => {
       prisma.order.findUnique.mockResolvedValue(null);
       await expect(
         service.changeOrderScholarship({ order_id: '1', new_scholarship: '2' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('deve alterar valores dos payments atrelados a ordem', async () => {

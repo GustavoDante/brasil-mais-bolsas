@@ -1,4 +1,3 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { NotificationsService } from './notifications.service';
@@ -47,18 +46,18 @@ describe('NotificationsService', () => {
 
     await expect(
       service.create({ title: 'Título', message: 'Mensagem', user_id: 'user-1' }),
-    ).rejects.toThrow(BadRequestException);
+    ).rejects.toMatchObject({ httpStatus: 400 });
   });
 
   it('deve bloquear remoção de notificação de outro usuário', async () => {
     prisma.notification.findUnique.mockResolvedValue({ id: 'notification-1', user_id: 'user-2' });
 
-    await expect(service.remove('notification-1', 'user-1')).rejects.toThrow(ForbiddenException);
+    await expect(service.remove('notification-1', 'user-1')).rejects.toMatchObject({ httpStatus: 403 });
   });
 
   it('deve lançar erro ao buscar notificação inexistente', async () => {
     prisma.notification.findUnique.mockResolvedValue(null);
 
-    await expect(service.findOne('notification-1')).rejects.toThrow(NotFoundException);
+    await expect(service.findOne('notification-1')).rejects.toMatchObject({ httpStatus: 404 });
   });
 });

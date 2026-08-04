@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -16,6 +15,7 @@ import type { AuthenticatedRequest } from '../../common/types/authenticated-requ
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateFaqDto, UpdateFaqDto } from './dto/faq.dto';
 import { FaqService } from './faq.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @ApiTags('FAQ')
 @Controller('faq')
@@ -29,7 +29,7 @@ export class FaqController {
   @ApiResponse({ status: 201, description: 'FAQ criada com sucesso' })
   async create(@Body() dto: CreateFaqDto, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const faq = await this.faqService.create(dto);
@@ -60,7 +60,7 @@ export class FaqController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const faq = await this.faqService.update(id, dto);
@@ -74,7 +74,7 @@ export class FaqController {
   @ApiOperation({ summary: 'Remove uma FAQ (Apenas Admin)' })
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     await this.faqService.remove(id);

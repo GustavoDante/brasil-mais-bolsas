@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -16,6 +15,7 @@ import type { AuthenticatedRequest } from '../../common/types/authenticated-requ
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateNotificationDto, UpdateNotificationDto } from './dto/notifications.dto';
 import { NotificationsService } from './notifications.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 @ApiTags('Notifications')
 @Controller('notifications')
@@ -29,7 +29,7 @@ export class NotificationsController {
   @ApiResponse({ status: 201, description: 'Notificação criada com sucesso' })
   async create(@Body() dto: CreateNotificationDto, @Req() req: AuthenticatedRequest) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const notification = await this.notificationsService.create(dto);
@@ -56,7 +56,7 @@ export class NotificationsController {
     const notification = await this.notificationsService.findOne(id);
 
     if (req.user.type !== 'admin' && notification.user_id !== req.user.userId) {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     return { ok: true, notification };
@@ -72,7 +72,7 @@ export class NotificationsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (req.user.type !== 'admin') {
-      throw new ForbiddenException('unauthorized');
+      throw new AppException('forbidden');
     }
 
     const notification = await this.notificationsService.update(id, dto);

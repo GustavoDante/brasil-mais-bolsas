@@ -1,18 +1,12 @@
 "use server";
 
-import { CreateNewScholarshipValueSchema } from "@repo/contracts";
-
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { ScholarshipFullDto } from "@/lib/api/dto";
-
-const schema = CreateNewScholarshipValueSchema;
-
-export type CreateScholarshipValueInput = z.infer<typeof schema>;
+import {
+  createScholarshipValueInputSchema,
+  type CreateScholarshipValueInput,
+} from "@/schemas/scholarships/create-scholarship-value.schema";
 
 /**
  * `POST /v1/scholarships/new_value` — Cria uma nova versão de valores para uma bolsa (admin).
@@ -24,7 +18,7 @@ export async function createScholarshipValue(
 ): Promise<ActionResult<ScholarshipFullDto>> {
   return executeAction({
     input,
-    schema,
+    schema: createScholarshipValueInputSchema,
     auth: "required",
     successMessage: "Novo valor cadastrado.",
     revalidateTags: ["scholarships"],

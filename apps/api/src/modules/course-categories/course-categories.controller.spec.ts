@@ -1,7 +1,7 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { CourseCategoriesController } from './course-categories.controller';
 import { CourseCategoriesService } from './course-categories.service';
+import { AppException } from '../../common/exceptions/app.exception';
 
 const adminJwt = { userId: 'admin-id', email: 'admin@test.com', type: 'admin' };
 const userJwt = { userId: 'user-id-1', email: 'user@test.com', type: 'user' };
@@ -43,16 +43,14 @@ describe('CourseCategoriesController', () => {
     });
 
     it('deve lancar erro se nao achar por id', async () => {
-      service.findById.mockRejectedValue(new NotFoundException());
-      await expect(controller.findById('1')).rejects.toThrow(NotFoundException);
+      service.findById.mockRejectedValue(new AppException('not-found'));
+      await expect(controller.findById('1')).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 
   describe('rotas restritas (admin)', () => {
     it('deve barrar criacao por user', async () => {
-      await expect(controller.create({ name: 'cat' }, makeReq(userJwt))).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(controller.create({ name: 'cat' }, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
     });
 
     it('deve permitir criacao por admin', async () => {

@@ -1,15 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import { executeAction, type ActionResult, zId } from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { InstitutionDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  id: zId("Informe o id da instituição"),
-});
-
-export type GetInstitutionInput = z.infer<typeof schema>;
+import {
+  getInstitutionInputSchema,
+  type GetInstitutionInput,
+} from "@/schemas/institutions/get-institution.schema";
 
 /**
  * `GET /v1/institutions/id/:id` — Busca uma instituição pelo id.
@@ -21,7 +18,7 @@ export async function getInstitution(
 ): Promise<ActionResult<InstitutionDto>> {
   return executeAction({
     input,
-    schema,
+    schema: getInstitutionInputSchema,
     auth: "required",
     run: ({ id }, { token }) =>
       apiRequest<{ institution: InstitutionDto }>(

@@ -1,20 +1,12 @@
 "use server";
 
-import { z } from "zod";
-import {
-  executeAction,
-  type ActionResult,
-  zOptionalDateString,
-} from "@/actions/_core";
+import { executeAction, type ActionResult } from "@/actions/_core";
 import { apiRequest } from "@/lib/api";
 import type { SellerDto } from "@/lib/api/dto";
-
-const schema = z.object({
-  startDate: zOptionalDateString(),
-  endDate: zOptionalDateString(),
-});
-
-export type ListSellersInput = z.infer<typeof schema>;
+import {
+  listSellersInputSchema,
+  type ListSellersInput,
+} from "@/schemas/sellers/list-sellers.schema";
 
 /**
  * `GET /v1/sellers` — Lista os vendedores, opcionalmente filtrando por período.
@@ -26,7 +18,7 @@ export async function listSellers(
 ): Promise<ActionResult<SellerDto[]>> {
   return executeAction({
     input,
-    schema,
+    schema: listSellersInputSchema,
     auth: "required",
     run: ({ startDate, endDate }, { token }) =>
       apiRequest<{ ok: boolean; sellers: SellerDto[] }>("/sellers", {

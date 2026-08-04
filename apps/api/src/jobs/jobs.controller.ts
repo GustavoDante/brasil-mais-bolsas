@@ -1,4 +1,4 @@
-import { Controller, ForbiddenException, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -11,6 +11,7 @@ import {
 } from './dto/jobs-response.dto';
 import { JOBS_TIMEZONE } from './jobs.config';
 import { OrdersRenewalService } from './orders-renewal/orders-renewal.service';
+import { AppException } from '../common/exceptions/app.exception';
 
 interface AuthenticatedRequest {
   user: { userId: string; email: string; type: string };
@@ -72,7 +73,7 @@ export class JobsController {
   }
 
   private assertAdmin(req: AuthenticatedRequest): void {
-    if (req.user?.type !== 'admin') throw new ForbiddenException('unauthorized');
+    if (req.user?.type !== 'admin') throw new AppException('forbidden');
   }
 
   private nextRun(job: CronJob): string | null {

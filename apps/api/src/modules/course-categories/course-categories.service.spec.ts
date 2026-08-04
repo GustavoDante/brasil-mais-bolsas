@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { CourseCategory } from '@repo/db';
@@ -62,7 +61,7 @@ describe('CourseCategoriesService', () => {
   describe('update', () => {
     it('deve lancar erro se nao achar', async () => {
       prisma.courseCategory.findUnique.mockResolvedValue(null);
-      await expect(service.update('id', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update('id', {})).rejects.toMatchObject({ httpStatus: 404 });
     });
 
     it('deve atualizar categoria', async () => {

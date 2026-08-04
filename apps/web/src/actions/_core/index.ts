@@ -7,10 +7,11 @@
 export {
   ACTION_ERROR_CODES,
   DEFAULT_ERROR_MESSAGE,
-  ERROR_MESSAGES,
+  TRANSPORT_ERRORS,
   buildActionError,
   normalizeError,
   type ActionError,
+  type TransportErrorCode,
 } from "./action-error";
 
 export {

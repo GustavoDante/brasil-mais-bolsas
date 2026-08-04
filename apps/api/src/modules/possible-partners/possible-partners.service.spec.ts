@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { PossiblePartnersService } from './possible-partners.service';
@@ -38,7 +37,7 @@ describe('PossiblePartnersService', () => {
 
       await expect(
         service.create({ name: 'Lead', email: 'lead@test.com', cell: '11999999999' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('deve criar lead quando não houver duplicidade', async () => {
@@ -59,7 +58,7 @@ describe('PossiblePartnersService', () => {
     it('deve lançar erro quando o lead não existir', async () => {
       mockPrisma.possiblePartner.findUnique.mockResolvedValueOnce(null);
 
-      await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing')).rejects.toMatchObject({ httpStatus: 404 });
     });
   });
 
