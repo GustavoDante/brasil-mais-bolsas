@@ -22,8 +22,8 @@ module.exports = {
         NODE_ENV: "production",
         PORT: 3005
       },
-      error_file: "/var/logs/brasil-mais-bolsas/brasil-mais-bolsas/pm2-error.log",
-      out_file: "/var/logs/brasil-mais-bolsas/brasil-mais-bolsas/pm2-out.log",
+      error_file: "/var/logs/brasil-mais-bolsas/web/pm2-error.log",
+      out_file: "/var/logs/brasil-mais-bolsas/web/pm2-out.log",
       log_date_format: "YYYY-MM-DD HH:mm:ss Z",
       merge_logs: true,
       time: true
