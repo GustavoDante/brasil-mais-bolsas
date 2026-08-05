@@ -2,7 +2,6 @@ import { Test } from '@nestjs/testing';
 import type { User } from '@repo/db';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { AppException } from '../../common/exceptions/app.exception';
 
 const mockUser: User = {
   id: 'user-id-1',
@@ -115,7 +114,9 @@ describe('UsersController', () => {
     });
 
     it('deve lancar AppException 403 se usuario tentar acessar outro id', async () => {
-      await expect(controller.findOne('outro-id', makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.findOne('outro-id', makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -131,7 +132,9 @@ describe('UsersController', () => {
     });
 
     it('deve lancar AppException 403 para nao-admin', async () => {
-      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -145,7 +148,9 @@ describe('UsersController', () => {
     });
 
     it('deve lancar AppException 403 para nao-admin', async () => {
-      await expect(controller.toggle(mockUser.id, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.toggle(mockUser.id, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -160,7 +165,9 @@ describe('UsersController', () => {
     });
 
     it('deve lancar AppException 403 para nao-admin', async () => {
-      await expect(controller.remove(mockUser.id, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.remove(mockUser.id, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 });

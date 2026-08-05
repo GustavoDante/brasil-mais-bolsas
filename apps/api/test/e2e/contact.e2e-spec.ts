@@ -77,9 +77,7 @@ describe('Contact (e2e)', () => {
     });
 
     it('deve propagar 503 quando o envio estiver indisponivel', async () => {
-      contactServiceMock.submit.mockRejectedValue(
-        new AppException('contact-not-delivered'),
-      );
+      contactServiceMock.submit.mockRejectedValue(new AppException('contact-not-delivered'));
 
       await request(app.getHttpServer()).post('/v1/contact').send(validContactPayload).expect(503);
     });

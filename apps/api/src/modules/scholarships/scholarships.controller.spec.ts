@@ -94,7 +94,9 @@ describe('ScholarshipsController', () => {
 
   describe('Rotas de restrição (Backoffice)', () => {
     it('deve falhar listBackoffice para user', async () => {
-      await expect(controller.listBackoffice(makeReq(userJwt), {})).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.listBackoffice(makeReq(userJwt), {})).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
 
     it('deve permitir listBackoffice para manager', async () => {

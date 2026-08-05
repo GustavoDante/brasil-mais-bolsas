@@ -50,7 +50,9 @@ describe('CourseCategoriesController', () => {
 
   describe('rotas restritas (admin)', () => {
     it('deve barrar criacao por user', async () => {
-      await expect(controller.create({ name: 'cat' }, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.create({ name: 'cat' }, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
 
     it('deve permitir criacao por admin', async () => {

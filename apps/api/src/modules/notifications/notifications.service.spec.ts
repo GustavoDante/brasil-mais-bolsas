@@ -52,7 +52,9 @@ describe('NotificationsService', () => {
   it('deve bloquear remoção de notificação de outro usuário', async () => {
     prisma.notification.findUnique.mockResolvedValue({ id: 'notification-1', user_id: 'user-2' });
 
-    await expect(service.remove('notification-1', 'user-1')).rejects.toMatchObject({ httpStatus: 403 });
+    await expect(service.remove('notification-1', 'user-1')).rejects.toMatchObject({
+      httpStatus: 403,
+    });
   });
 
   it('deve lançar erro ao buscar notificação inexistente', async () => {

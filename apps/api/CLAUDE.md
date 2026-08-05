@@ -307,21 +307,26 @@ corpo de erro, já que os demais e2e só olham status.
 
 #### Mock do PrismaClient (obrigatório)
 
-O cliente Prisma v7 gerado em `src/generated/prisma/client.ts` usa `import.meta` (ESM
-puro), que é incompatível com o Jest em modo CommonJS. Por isso, existe um mock manual
-em `src/__mocks__/prisma-client.mock.ts`.
+O cliente Prisma v7, gerado em `packages/db/generated/prisma`, usa `import.meta` (ESM
+puro), incompatível com o Jest em modo CommonJS. Por isso existe um mock manual em
+`src/__mocks__/prisma-client.mock.ts`.
 
-O `package.json` possui um `moduleNameMapper` que redireciona qualquer import de
-`generated/prisma/client` para esse mock:
+Como a API importa tudo que é Prisma por `@repo/db`, o `moduleNameMapper` intercepta esse
+único especificador. Ele está em **três** arquivos e os três precisam concordar:
 
-```json
-"moduleNameMapper": {
-  "^(.*)/generated/prisma/client(.*)$": "<rootDir>/__mocks__/prisma-client.mock.ts"
-}
-```
+| Arquivo | Mapeamento |
+| --- | --- |
+| `package.json` (bloco `jest`) | `"^@repo/db$": "<rootDir>/__mocks__/prisma-client.mock.ts"` |
+| `test/jest-e2e.json` | `"^@repo/db$": "<rootDir>/../src/__mocks__/prisma-client.mock.ts"` |
+| `test/jest-integration.json` | idem ao e2e |
 
-- **Não remover esse mapeamento.** Sem ele, todos os testes que importam qualquer coisa
-  ligada ao Prisma vão falhar.
+O `rootDir` difere (`src` no unitário, `test` nos outros), por isso o caminho relativo
+muda — mas a chave é a mesma nos três.
+
+- **Não remover esses mapeamentos.** Sem eles, todo teste que importe qualquer coisa
+  ligada ao Prisma falha no carregamento do módulo.
+- Campo novo no `schema.prisma` que os testes usem ⇒ acrescente ao mock. Ele é escrito à
+  mão de propósito: um mock gerado traria o `import.meta` de volta.
 - Ao adicionar um novo modelo no schema, adicionar o modelo correspondente no mock em
   `src/__mocks__/prisma-client.mock.ts`.
 - O `PrismaService` deve ser injetado via `{ provide: PrismaService, useValue: prismaMock }`

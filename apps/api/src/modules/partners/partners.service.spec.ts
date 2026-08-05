@@ -1,7 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { PartnersService } from './partners.service';
-import { AppException } from '../../common/exceptions/app.exception';
 
 const mockPrisma = {
   partner: {
@@ -33,7 +32,9 @@ describe('PartnersService', () => {
   describe('create', () => {
     it('should throw AppException 400 if code exists', async () => {
       mockPrisma.partner.findFirst.mockResolvedValueOnce({ id: '1' });
-      await expect(service.create({ name: 'x', code: 'x', password: '123' })).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(service.create({ name: 'x', code: 'x', password: '123' })).rejects.toMatchObject(
+        { httpStatus: 400 },
+      );
     });
 
     it('should create partner if code is new', async () => {

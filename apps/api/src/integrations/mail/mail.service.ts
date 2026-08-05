@@ -142,9 +142,14 @@ export class MailService {
       siteUrl: this.webUrl,
     };
 
-    return this.send(to, `${contactSubject}: ${params.subject}`, createElement(ContactEmail, props), {
-      replyTo: params.email,
-    });
+    return this.send(
+      to,
+      `${contactSubject}: ${params.subject}`,
+      createElement(ContactEmail, props),
+      {
+        replyTo: params.email,
+      },
+    );
   }
 
   private async send(

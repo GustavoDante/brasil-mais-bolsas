@@ -57,7 +57,9 @@ describe('PossiblePartnersController', () => {
     });
 
     it('deve bloquear não-admin', async () => {
-      await expect(controller.findAll(makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.findAll(makeReq(managerJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 

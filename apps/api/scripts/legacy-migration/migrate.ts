@@ -1,7 +1,5 @@
-import { PrismaPg } from '@prisma/adapter-pg';
 import 'dotenv/config';
-import { Pool } from 'pg';
-import { PrismaClient } from '@repo/db';
+import { PrismaClient, createPrismaConnection } from '@repo/db';
 import { HELP, parseConfig, validateConfig } from './lib/config';
 import type { MigrationContext } from './lib/context';
 import { IdRegistry, type IdLoader } from './lib/ids';
@@ -113,8 +111,8 @@ async function main(): Promise<number> {
   }
 
   const legacy = new LegacySource(config.legacyUrl, config.legacySsl);
-  const pool = new Pool({ connectionString: config.targetUrl });
-  const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
+  const { adapter, pool } = createPrismaConnection(config.targetUrl);
+  const prisma = new PrismaClient({ adapter });
   const report = new MigrationReport();
 
   const ctx: MigrationContext = {

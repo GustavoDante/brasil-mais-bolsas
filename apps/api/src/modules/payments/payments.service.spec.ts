@@ -172,6 +172,7 @@ describe('PaymentsService', () => {
       await expect(
         service.createCreditCardPayment('user-1', {
           scholarship_id: 'scholarship-1',
+          installment_count: 1,
           creditCard: {
             holderName: 'USUARIO TESTE',
             number: '5162306219378829',

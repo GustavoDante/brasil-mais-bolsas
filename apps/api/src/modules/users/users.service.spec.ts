@@ -3,7 +3,6 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import type { User } from '@repo/db';
 import { UsersService } from './users.service';
-import { AppException } from '../../common/exceptions/app.exception';
 
 jest.mock('bcrypt');
 

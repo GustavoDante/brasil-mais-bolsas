@@ -106,9 +106,7 @@ describe('Sellers (e2e)', () => {
         .expect(200));
 
     it('should reject missing seller -> 400', async () => {
-      getSellersService().findOne.mockRejectedValueOnce(
-        new AppException('seller-not-found'),
-      );
+      getSellersService().findOne.mockRejectedValueOnce(new AppException('seller-not-found'));
 
       await request(app.getHttpServer())
         .get('/v1/sellers/id/missing-seller')

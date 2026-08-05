@@ -74,7 +74,9 @@ describe('ScholarshipsService', () => {
   describe('create', () => {
     it('deve falhar se instituição for inválida', async () => {
       prisma.institution.findUnique.mockResolvedValue(null);
-      await expect(service.create({ institution_id: '1' } as CreateScholarshipDto)).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(
+        service.create({ institution_id: '1' } as CreateScholarshipDto),
+      ).rejects.toMatchObject({ httpStatus: 400 });
     });
 
     it('deve falhar se curso for inválido', async () => {

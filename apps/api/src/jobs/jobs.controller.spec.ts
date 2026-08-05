@@ -76,7 +76,9 @@ describe('JobsController', () => {
     });
 
     it('deve negar execucao para quem nao e admin', async () => {
-      await expect(controller.runOrdersRenewal(managerRequest)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.runOrdersRenewal(managerRequest)).rejects.toMatchObject({
+        httpStatus: 403,
+      });
       expect(ordersRenewalService.run).not.toHaveBeenCalled();
     });
   });

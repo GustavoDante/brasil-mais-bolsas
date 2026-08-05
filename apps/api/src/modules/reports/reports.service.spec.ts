@@ -167,7 +167,9 @@ describe('ReportsService', () => {
     it('deve lançar erro quando a ordem não existir', async () => {
       prisma.order.findFirst.mockResolvedValue(null);
 
-      await expect(service.getPayments('order-1', 'user-1')).rejects.toMatchObject({ httpStatus: 404 });
+      await expect(service.getPayments('order-1', 'user-1')).rejects.toMatchObject({
+        httpStatus: 404,
+      });
     });
   });
 });

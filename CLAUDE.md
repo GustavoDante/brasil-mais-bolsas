@@ -24,9 +24,9 @@ packages/
 pnpm install             # instala tudo; o pnpm resolve os links de workspace
 pnpm dev                 # sobe api + web (turbo, persistent)
 pnpm build               # pacotes antes dos apps (dependsOn ^build)
-pnpm typecheck           # checagem de tipos em todos os workspaces
+pnpm typecheck           # tipos nos 4 workspaces com código (inclui specs e scripts)
 pnpm lint
-pnpm test
+pnpm test                # só `apps/api` tem suíte; o web é coberto pelo `next build`
 
 pnpm db:generate         # client Prisma + schemas Zod de @repo/contracts, numa execução
 pnpm db:migrate          # prisma migrate dev
@@ -142,3 +142,9 @@ pnpm --filter api run test && pnpm --filter api run test:e2e
 O `next build` é o type-check definitivo do web (não há suíte de testes lá). Mudou schema
 Zod compartilhado? Os dois apps precisam compilar — é justamente esse acoplamento
 verificável que o monorepo existe para dar.
+
+**`pnpm build` e `pnpm typecheck` não são redundantes.** O `nest build` compila pelo
+`tsconfig.build.json`, que exclui `test/`, `scripts/` e `**/*spec.ts`; o `typecheck` da API
+usa o `tsconfig.json`, que inclui os três. E o `ts-jest` não reprova por erro de tipo — uma
+suíte verde não é prova de que os specs tipam. Sem os dois comandos, erro em spec ou em
+script passa despercebido indefinidamente.

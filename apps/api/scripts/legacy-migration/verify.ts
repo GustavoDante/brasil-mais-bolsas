@@ -4,13 +4,11 @@
  *
  * Uso: npx ts-node scripts/legacy-migration/verify.ts
  */
-import { PrismaPg } from '@prisma/adapter-pg';
 import 'dotenv/config';
-import { Pool } from 'pg';
-import { PrismaClient } from '@repo/db';
+import { PrismaClient, createPrismaConnection } from '@repo/db';
 
-const pool = new Pool({ connectionString: process.env['DATABASE_URL'] });
-const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
+const { adapter, pool } = createPrismaConnection();
+const prisma = new PrismaClient({ adapter });
 
 async function main(): Promise<void> {
   const [users, minors, orders, payments, scholarships] = await Promise.all([

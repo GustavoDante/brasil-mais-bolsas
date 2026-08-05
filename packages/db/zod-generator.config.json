@@ -4,7 +4,6 @@
   "pureModelsLean": true,
   "decimalMode": "string",
   "jsonSchemaCompatible": true,
-  "dateTimeFormat": "isoString",
   "dateTimeStrategy": "isoString",
   "variants": {
     "pure": { "enabled": true },

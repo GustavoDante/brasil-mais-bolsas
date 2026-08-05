@@ -1,7 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { SellersService } from './sellers.service';
-import { AppException } from '../../common/exceptions/app.exception';
 
 const mockPrisma = {
   seller: {

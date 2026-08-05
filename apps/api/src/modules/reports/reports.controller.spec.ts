@@ -57,7 +57,9 @@ describe('ReportsController', () => {
     });
 
     it('deve bloquear user comum', async () => {
-      await expect(controller.getStudents(makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.getStudents(makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -76,7 +78,9 @@ describe('ReportsController', () => {
     });
 
     it('deve bloquear manager', async () => {
-      await expect(controller.getCalled(makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.getCalled(makeReq(managerJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -100,7 +104,9 @@ describe('ReportsController', () => {
 
     it('deve bloquear user comum', async () => {
       const query: RenewalsReportQueryDto = { days: 15 };
-      await expect(controller.getRenewals(query, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.getRenewals(query, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -113,7 +119,9 @@ describe('ReportsController', () => {
         end_date: '2024-12-31',
       };
 
-      await expect(controller.getGeneralReport(query, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.getGeneralReport(query, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -128,13 +136,17 @@ describe('ReportsController', () => {
     });
 
     it('deve rejeitar quando order_id não for enviado', async () => {
-      await expect(controller.getPayments(undefined, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(controller.getPayments(undefined, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 400,
+      });
     });
   });
 
   describe('getImpactReport', () => {
     it('deve exigir instituição para admin', async () => {
-      await expect(controller.getImpactReport('', makeReq(adminJwt))).rejects.toMatchObject({ httpStatus: 400 });
+      await expect(controller.getImpactReport('', makeReq(adminJwt))).rejects.toMatchObject({
+        httpStatus: 400,
+      });
     });
   });
 });

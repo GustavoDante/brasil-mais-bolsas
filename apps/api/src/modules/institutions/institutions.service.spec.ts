@@ -5,7 +5,6 @@ import type { Institution } from '@repo/db';
 import { StorageService } from '../../integrations/storage/storage.service';
 import { UploadsService } from '../uploads/uploads.service';
 import { InstitutionsService } from './institutions.service';
-import { AppException } from '../../common/exceptions/app.exception';
 
 const imageFile: UploadedFileData = {
   fieldname: 'image',

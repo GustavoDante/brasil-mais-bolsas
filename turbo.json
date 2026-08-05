@@ -1,6 +1,5 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [".env"],
   "globalEnv": ["NODE_ENV", "DATABASE_URL"],
   "tasks": {
     "build": {
@@ -33,6 +32,17 @@
     "@repo/contracts#build": {
       "dependsOn": ["@repo/db#db:generate"],
       "outputs": ["dist/**"]
+    },
+
+    // As `NEXT_PUBLIC_*` sao inlinadas no bundle durante o build, mas os arquivos
+    // `.env*` sao gitignored — e o turbo hasheia so o que o git rastreia. Sem estes
+    // `inputs`, trocar um valor no `.env.local` nao invalida o cache: o build "passa"
+    // replicando o `.next` antigo, com os valores velhos dentro. `$TURBO_DEFAULT$`
+    // preserva os inputs normais e acrescenta os ignorados.
+    "web#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local", ".env.production"]
     }
   }
 }

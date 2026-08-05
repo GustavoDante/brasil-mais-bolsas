@@ -2,7 +2,6 @@ import { Test } from '@nestjs/testing';
 import type { UploadedFileData } from '../../common/types/uploaded-file.type';
 import { InstitutionsController } from './institutions.controller';
 import { InstitutionsService } from './institutions.service';
-import { AppException } from '../../common/exceptions/app.exception';
 
 const adminJwt = { userId: 'admin-id', email: 'admin@test.com', type: 'admin' };
 const userJwt = { userId: 'user-id-1', email: 'user@test.com', type: 'user' };
@@ -89,7 +88,9 @@ describe('InstitutionsController', () => {
     });
 
     it('deve barrar create para user', async () => {
-      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.create({} as never, makeReq(userJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
 
     it('deve repassar o arquivo de imagem para o service no create', async () => {

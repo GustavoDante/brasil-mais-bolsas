@@ -94,7 +94,9 @@ describe('OrdersService', () => {
     it('deve restringir usuario comum aos proprios pedidos', async () => {
       prisma.order.findMany.mockResolvedValue([order]);
 
-      await service.findAll(regularUser, {});
+      // `page`/`limit` tem `.default()` no schema, entao chegam sempre preenchidos ao
+      // service. Chamar com `{}` aqui testaria uma entrada que o pipe nunca produz.
+      await service.findAll(regularUser, { page: 1, limit: 20 });
 
       expect(prisma.order.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -107,7 +109,7 @@ describe('OrdersService', () => {
       prisma.user.findUnique.mockResolvedValue({ institution_id: 'institution-1' });
       prisma.order.findMany.mockResolvedValue([order]);
 
-      await service.findAll(managerUser, {});
+      await service.findAll(managerUser, { page: 1, limit: 20 });
 
       expect(prisma.order.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -129,13 +131,17 @@ describe('OrdersService', () => {
     it('deve bloquear usuario comum acessando pedido de outro usuario', async () => {
       prisma.order.findUnique.mockResolvedValue({ ...order, user_id: 'other-user' });
 
-      await expect(service.findById('order-1', regularUser)).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(service.findById('order-1', regularUser)).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
 
     it('deve falhar quando pedido nao existir', async () => {
       prisma.order.findUnique.mockResolvedValue(null);
 
-      await expect(service.findById('missing', adminUser)).rejects.toMatchObject({ httpStatus: 404 });
+      await expect(service.findById('missing', adminUser)).rejects.toMatchObject({
+        httpStatus: 404,
+      });
     });
   });
 

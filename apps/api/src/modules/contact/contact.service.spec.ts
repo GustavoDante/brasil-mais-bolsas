@@ -98,10 +98,7 @@ describe('ContactService', () => {
 
       await service.submit({ ...payload, type: 'souAluno' });
 
-      expect(mailService.sendContact).toHaveBeenCalledWith(
-        'suporte@bmb.com.br',
-        expect.anything(),
-      );
+      expect(mailService.sendContact).toHaveBeenCalledWith('suporte@bmb.com.br', expect.anything());
     });
   });
 });

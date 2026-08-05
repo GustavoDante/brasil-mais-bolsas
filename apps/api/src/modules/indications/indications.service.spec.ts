@@ -1,7 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { IndicationsService } from './indications.service';
-import { AppException } from '../../common/exceptions/app.exception';
 
 describe('IndicationsService', () => {
   let service: IndicationsService;

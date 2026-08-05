@@ -67,7 +67,9 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear listagem para nao-admin', async () => {
-      await expect(controller.findAll({}, makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.findAll({}, makeReq(managerJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -97,7 +99,9 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear acesso para nao-admin', async () => {
-      await expect(controller.findOne('seller-1', makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.findOne('seller-1', makeReq(managerJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -129,7 +133,9 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear delete para nao-admin', async () => {
-      await expect(controller.remove('seller-1', makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.remove('seller-1', makeReq(managerJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 
@@ -144,7 +150,9 @@ describe('SellersController', () => {
     });
 
     it('deve bloquear toggle para nao-admin', async () => {
-      await expect(controller.toggle('seller-1', makeReq(managerJwt))).rejects.toMatchObject({ httpStatus: 403 });
+      await expect(controller.toggle('seller-1', makeReq(managerJwt))).rejects.toMatchObject({
+        httpStatus: 403,
+      });
     });
   });
 });

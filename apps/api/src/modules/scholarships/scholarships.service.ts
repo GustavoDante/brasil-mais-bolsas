@@ -17,12 +17,10 @@ export class ScholarshipsService {
     const institution = await this.prisma.institution.findUnique({
       where: { id: createDto.institution_id },
     });
-    if (!institution || institution.delete)
-      throw new AppException('invalid-institution');
+    if (!institution || institution.delete) throw new AppException('invalid-institution');
 
     const course = await this.prisma.course.findUnique({ where: { id: createDto.course_id } });
-    if (!course || course.delete)
-      throw new AppException('invalid-course');
+    if (!course || course.delete) throw new AppException('invalid-course');
 
     const final_price = Number(
       (createDto.full_price - (createDto.full_price * createDto.discount) / 100).toFixed(2),
@@ -237,14 +235,12 @@ export class ScholarshipsService {
 
   async changeOrderScholarship(dto: ChangeScholarshipOrderDto) {
     const order = await this.prisma.order.findUnique({ where: { id: dto.order_id } });
-    if (!order)
-      throw new AppException('invalid-order');
+    if (!order) throw new AppException('invalid-order');
 
     const scholarship = await this.prisma.scholarship.findUnique({
       where: { id: dto.new_scholarship },
     });
-    if (!scholarship)
-      throw new AppException('invalid-scholarship');
+    if (!scholarship) throw new AppException('invalid-scholarship');
 
     await this.prisma.payment.updateMany({
       where: { order_id: order.id },
