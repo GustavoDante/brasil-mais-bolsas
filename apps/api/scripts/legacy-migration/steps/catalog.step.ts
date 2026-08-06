@@ -176,7 +176,7 @@ export const accessesStep: MigrationStep = {
 
         const partner = await parentId(ctx, 'partner', row['partner_id']);
         if (!partner) {
-          ctx.report.skipped(step, key, 'parceiro-inexistente', String(row['partner_id'] ?? ''));
+          ctx.report.skipped(step, key, 'parceiro-inexistente', text(row, ['partner_id']) ?? '');
           continue;
         }
 
@@ -221,7 +221,7 @@ export const institutionsStep: MigrationStep = {
             step,
             key,
             'vendedor-inexistente-usando-placeholder',
-            String(row['seller_id'] ?? ''),
+            text(row, ['seller_id']) ?? '',
           );
         }
 
@@ -335,7 +335,7 @@ export const coursesStep: MigrationStep = {
             step,
             key,
             'categoria-inexistente-usando-placeholder',
-            String(row['category_id'] ?? ''),
+            text(row, ['category_id']) ?? '',
           );
         }
 
@@ -394,7 +394,7 @@ export const scholarshipsStep: MigrationStep = {
             step,
             key,
             !course ? 'curso-inexistente' : 'instituicao-inexistente',
-            `course_id=${String(row['course_id'] ?? '')} institution_id=${String(row['institution_id'] ?? '')}`,
+            `course_id=${text(row, ['course_id']) ?? ''} institution_id=${text(row, ['institution_id']) ?? ''}`,
           );
           continue;
         }

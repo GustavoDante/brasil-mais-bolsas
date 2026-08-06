@@ -15,6 +15,8 @@ import type { BolsaFilters, BolsaModalidade } from "@/types/scholarship";
 
 /** Chaves em pt-BR, iguais às da URL. */
 export const BOLSAS_PARAMS = {
+  /** Categoria de curso ("Faculdades", "Pós-graduação"...) — o "tipo" escolhido na home. */
+  category: "categoria",
   course: "curso",
   college: "faculdade",
   city: "cidade",
@@ -28,6 +30,7 @@ export const BOLSA_MODALIDADES: BolsaModalidade[] = ["Presencial", "Semi", "EaD"
 export const BOLSAS_PAGE_SIZE = 12;
 
 export interface BolsasSearch {
+  category: string;
   course: string;
   college: string;
   city: string;
@@ -39,6 +42,7 @@ export interface BolsasSearch {
 export type RawSearchParams = Record<string, string | string[] | undefined>;
 
 export const EMPTY_BOLSAS_SEARCH: BolsasSearch = {
+  category: "",
   course: "",
   college: "",
   city: "",
@@ -82,6 +86,7 @@ export function parseBolsasSearch(
   );
 
   return {
+    category: get(BOLSAS_PARAMS.category),
     course: get(BOLSAS_PARAMS.course),
     college: get(BOLSAS_PARAMS.college),
     city: get(BOLSAS_PARAMS.city),
@@ -101,6 +106,7 @@ export function buildBolsasHref(
 ): string {
   const params = new URLSearchParams();
 
+  if (search.category) params.set(BOLSAS_PARAMS.category, search.category);
   if (search.course) params.set(BOLSAS_PARAMS.course, search.course);
   if (search.college) params.set(BOLSAS_PARAMS.college, search.college);
   if (search.city) params.set(BOLSAS_PARAMS.city, search.city);
@@ -123,6 +129,7 @@ export function buildBolsasHref(
 /** Converte o estado da URL nos filtros que `src/data` entende. */
 export function toBolsaFilters(search: BolsasSearch): BolsaFilters {
   return {
+    category: search.category || undefined,
     course: search.course || undefined,
     college: search.college || undefined,
     city: search.city || undefined,
@@ -133,6 +140,7 @@ export function toBolsaFilters(search: BolsasSearch): BolsaFilters {
 /** Quantos filtros (fora paginação) estão ativos — usado no SEO e no analytics. */
 export function countActiveFilters(search: BolsasSearch): number {
   return (
+    (search.category ? 1 : 0) +
     (search.course ? 1 : 0) +
     (search.college ? 1 : 0) +
     (search.city ? 1 : 0) +

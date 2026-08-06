@@ -78,7 +78,7 @@ async function planUserEmails(
   const used = new Set<string>();
 
   for (const row of rows) {
-    const key = String(row['id']);
+    const key = legacyKeyOf(row);
     const email = normalizeEmail(text(row, ['email']));
     if (!email) {
       const generated = placeholderEmail('legacy-user', key);
@@ -111,7 +111,7 @@ async function planUserEmails(
     });
 
     ordered.forEach((row, index) => {
-      const key = String(row['id']);
+      const key = legacyKeyOf(row);
       if (index === 0) {
         decisions.set(key, { email, renamedFrom: null });
         used.add(email);
@@ -219,9 +219,9 @@ export const addressesStep: MigrationStep = {
     const winners = new Map<string, string>();
     const times = new Map<string, number>();
     for (const row of projection) {
-      const user = String(row['user_id'] ?? '');
+      const user = text(row, ['user_id']) ?? '';
       if (!user) continue;
-      const id = String(row['id']);
+      const id = legacyKeyOf(row);
       const time = timeOf(row, [columns['updated'], columns['created']]);
       const currentTime = times.get(user);
       // Rows arrive ordered by id, so `>=` naturally keeps the highest id on a tie.
@@ -242,7 +242,7 @@ export const addressesStep: MigrationStep = {
       for (const row of batch) {
         stat.read += 1;
         const key = legacyKeyOf(row);
-        const legacyUser = String(row['user_id'] ?? '');
+        const legacyUser = text(row, ['user_id']) ?? '';
 
         if (winners.get(legacyUser) !== key) {
           ctx.report.skipped(
@@ -380,9 +380,9 @@ export const externalClientsStep: MigrationStep = {
     const winners = new Map<string, string>();
     const times = new Map<string, number>();
     for (const row of projection) {
-      const reference = String(row[referenceColumn] ?? '');
+      const reference = text(row, [referenceColumn]) ?? '';
       if (!reference) continue;
-      const id = String(row['id']);
+      const id = legacyKeyOf(row);
       const time = timeOf(row, [columns['updated'], columns['created']]);
       const currentTime = times.get(reference);
       if (currentTime === undefined || time >= currentTime) {
@@ -408,7 +408,7 @@ export const externalClientsStep: MigrationStep = {
           continue;
         }
 
-        const reference = String(read(row, [referenceColumn]) ?? '');
+        const reference = text(row, [referenceColumn]) ?? '';
         if (winners.get(reference) !== key) {
           ctx.report.skipped(step, key, 'cliente-duplicado-para-o-usuario', `ref=${reference}`);
           continue;

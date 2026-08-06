@@ -20,7 +20,7 @@ export function resolveImageUrl(
 
   if (/^https?:\/\//i.test(image)) return image;
 
-  // Caminho relativo servido pelo próprio site (ex.: "/mock/logo.png").
+  // Caminho relativo servido pelo próprio site (ex.: "/placeholder/school-logo.png").
   if (image.startsWith("/")) return image;
 
   const base = apiConfig.imagesBaseUrl;

@@ -1,9 +1,8 @@
 /**
  * Verificação da integração com a API real.
  *
- * Executa a camada de dados (`src/data`) com os mocks desligados e imprime o que a UI
- * receberia. É a forma rápida de conferir se um endpoint mudou de formato sem precisar
- * abrir o site.
+ * Executa a camada de dados (`src/data`) e imprime o que a UI receberia. É a forma
+ * rápida de conferir se um endpoint mudou de formato sem precisar abrir o site.
  *
  * Uso (com a API rodando):
  *   npx tsx scripts/check-api-integration.ts
@@ -11,7 +10,6 @@
  */
 // Precisa vir antes de qualquer import da aplicação: `apiConfig` lê o ambiente no load.
 // Por isso os módulos abaixo entram por import dinâmico, não estático.
-process.env.NEXT_PUBLIC_USE_MOCKS = "false";
 process.env.NEXT_PUBLIC_API_URL ??= "http://localhost:3333";
 
 async function main(): Promise<void> {
@@ -35,13 +33,7 @@ async function main(): Promise<void> {
     { label: "listFaq()", run: () => listFaq() },
   ];
 
-  console.log(`API: ${apiConfig.baseUrl}${apiConfig.prefix} | mocks: ${apiConfig.useMocks}\n`);
-
-  if (apiConfig.useMocks) {
-    console.log("Mocks continuam ligados — o teste não valida a API. Abortando.");
-    process.exitCode = 1;
-    return;
-  }
+  console.log(`API: ${apiConfig.baseUrl}${apiConfig.prefix}\n`);
 
   let failures = 0;
 

@@ -1,8 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRightCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { buildBolsasHref } from "@/lib/search-params";
 import type { ScholarshipCardData } from "@/types/scholarship";
 
 interface ScholarshipCardProps {
@@ -35,9 +37,16 @@ export function ScholarshipCard({ data }: ScholarshipCardProps) {
         <p className="text-sm font-medium text-brand-blue-800">
           A partir de: <span className="font-bold">{data.priceFrom}</span>
         </p>
-        <Button className="w-full bg-brand-blue-800 text-white font-bold hover:bg-brand-blue-900 shadow-md h-11 flex justify-start pl-4">
-          <ArrowRightCircle className="mr-2 h-5 w-5 fill-white text-brand-blue-800" />
-          Ver bolsas
+        {/* O card representa uma instituição — o botão leva à listagem já filtrada
+            por ela, que é o mesmo filtro `faculdade` da query string pública. */}
+        <Button
+          asChild
+          className="w-full bg-brand-blue-800 text-white font-bold hover:bg-brand-blue-900 shadow-md h-11 flex justify-start pl-4"
+        >
+          <Link href={buildBolsasHref({ college: data.school })}>
+            <ArrowRightCircle className="mr-2 h-5 w-5 fill-white text-brand-blue-800" />
+            Ver bolsas
+          </Link>
         </Button>
       </CardContent>
     </Card>

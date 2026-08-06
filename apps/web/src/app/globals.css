@@ -136,6 +136,20 @@
   --sidebar-ring: #ffb000;
 }
 
+/**
+ * Esconde a scrollbar num contêiner com `overflow-x-auto`, mantendo a rolagem.
+ * Usado nos "chip scrollers" mobile (categorias da busca, filtros) — o padrão de
+ * carrossel por toque que não precisa de setas nem de biblioteca.
+ */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

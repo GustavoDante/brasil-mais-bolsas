@@ -21,10 +21,17 @@ const defaultLinks: NavLink[] = [
 
 interface SiteHeaderProps {
   links?: NavLink[];
+  /** Resolvido pelo layout raiz — este componente é de cliente e não lê a sessão. */
+  isAuthenticated?: boolean;
 }
 
-export function SiteHeader({ links = defaultLinks }: SiteHeaderProps) {
+export function SiteHeader({
+  links = defaultLinks,
+  isAuthenticated = false,
+}: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const accountHref = isAuthenticated ? "/dashboard" : "/entrar";
+  const accountLabel = isAuthenticated ? "Minha conta" : "Portal do aluno";
 
   return (
     <header className="w-full bg-brand-blue-800 text-neutral-100">
@@ -53,9 +60,14 @@ export function SiteHeader({ links = defaultLinks }: SiteHeaderProps) {
             <Phone className="mr-2 h-4 w-4" />
             Fale conosco
           </Button>
-          <Button className="bg-neutral-100 text-brand-blue-700 hover:bg-white">
-            <Contact2 className="mr-2 h-4 w-4" />
-            Portal do aluno
+          <Button
+            asChild
+            className="bg-neutral-100 text-brand-blue-700 hover:bg-white"
+          >
+            <Link href={accountHref}>
+              <Contact2 className="mr-2 h-4 w-4" />
+              {accountLabel}
+            </Link>
           </Button>
         </div>
         <Button
@@ -92,9 +104,14 @@ export function SiteHeader({ links = defaultLinks }: SiteHeaderProps) {
               <Phone className="mr-2 h-4 w-4" />
               Fale conosco
             </Button>
-            <Button className="w-full justify-center bg-neutral-100 text-brand-blue-700 hover:bg-white">
-              <Contact2 className="mr-2 h-4 w-4" />
-              Portal do aluno
+            <Button
+              asChild
+              className="w-full justify-center bg-neutral-100 text-brand-blue-700 hover:bg-white"
+            >
+              <Link href={accountHref} onClick={() => setMenuOpen(false)}>
+                <Contact2 className="mr-2 h-4 w-4" />
+                {accountLabel}
+              </Link>
             </Button>
           </div>
         </div>

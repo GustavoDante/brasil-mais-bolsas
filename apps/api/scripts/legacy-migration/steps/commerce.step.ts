@@ -31,14 +31,14 @@ async function planOrderCodes(ctx: MigrationContext, table: string): Promise<Map
 
   let next = 0;
   for (const row of rows) {
-    const code = Number.parseInt(String(row.code ?? ''), 10);
+    const code = Number.parseInt(text(row, ['code']) ?? '', 10);
     if (Number.isFinite(code) && code > next) next = code;
   }
   next += 1;
 
   for (const row of rows) {
-    const key = String(row.id);
-    const parsed = Number.parseInt(String(row.code ?? ''), 10);
+    const key = legacyKeyOf(row);
+    const parsed = Number.parseInt(text(row, ['code']) ?? '', 10);
     const code = Number.isFinite(parsed) ? parsed : null;
 
     if (code !== null && !used.has(code)) {
@@ -90,7 +90,7 @@ export const ordersStep: MigrationStep = {
             step,
             key,
             !user ? 'usuario-inexistente' : 'bolsa-inexistente',
-            `user_id=${String(row['user_id'] ?? '')} scholarship_id=${String(row['scholarship_id'] ?? '')}`,
+            `user_id=${text(row, ['user_id']) ?? ''} scholarship_id=${text(row, ['scholarship_id']) ?? ''}`,
           );
           continue;
         }
@@ -148,7 +148,7 @@ export const paymentsStep: MigrationStep = {
             step,
             key,
             reason,
-            `user_id=${String(row['user_id'] ?? '')} scholarship_id=${String(row['scholarship_id'] ?? '')} order_id=${String(row['order_id'] ?? '')}`,
+            `user_id=${text(row, ['user_id']) ?? ''} scholarship_id=${text(row, ['scholarship_id']) ?? ''} order_id=${text(row, ['order_id']) ?? ''}`,
           );
           continue;
         }
@@ -222,7 +222,7 @@ export const signedContractsStep: MigrationStep = {
             step,
             key,
             !user ? 'usuario-inexistente' : 'bolsa-inexistente',
-            `user_id=${String(row['user_id'] ?? '')} scholarship_id=${String(row['scholarship_id'] ?? '')}`,
+            `user_id=${text(row, ['user_id']) ?? ''} scholarship_id=${text(row, ['scholarship_id']) ?? ''}`,
           );
           continue;
         }

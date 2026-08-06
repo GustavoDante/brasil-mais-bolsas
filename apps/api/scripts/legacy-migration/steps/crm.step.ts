@@ -64,8 +64,8 @@ async function getIndicationPlan(ctx: MigrationContext): Promise<IndicationPlan>
       return Number(a['id']) - Number(b['id']);
     });
 
-    const winner = String(ordered[0]?.['id'] ?? '');
-    for (const row of ordered) plan.set(String(row['id']), winner);
+    const winner = text(ordered[0] ?? {}, ['id']) ?? '';
+    for (const row of ordered) plan.set(legacyKeyOf(row), winner);
   }
 
   indicationPlanCache = plan;
@@ -107,7 +107,7 @@ export const indicationsStep: MigrationStep = {
             step,
             key,
             'usuario-inexistente',
-            `user_id=${String(row['user_id'] ?? '')}`,
+            `user_id=${text(row, ['user_id']) ?? ''}`,
           );
           continue;
         }
@@ -156,7 +156,7 @@ export const indicationCallsStep: MigrationStep = {
 
         // In the legacy schema the association was `Indications.hasMany(CallIndications,
         // { foreignKey: 'receiver_id' })`, so receiver_id holds the indication id.
-        const legacyReceiver = String(row['receiver_id'] ?? '');
+        const legacyReceiver = text(row, ['receiver_id']) ?? '';
         const target = plan.get(legacyReceiver) ?? legacyReceiver;
         const indication = await parentId(ctx, 'indication', target);
         if (!indication) {
@@ -178,7 +178,7 @@ export const indicationCallsStep: MigrationStep = {
             step,
             key,
             'usuario-caller-inexistente',
-            `caller_id=${String(row['caller_id'] ?? '')}`,
+            `caller_id=${text(row, ['caller_id']) ?? ''}`,
           );
           continue;
         }
@@ -274,7 +274,7 @@ export const possiblePartnerCallsStep: MigrationStep = {
             step,
             key,
             'possivel-parceiro-inexistente',
-            `receiver_id=${String(row['receiver_id'] ?? '')}`,
+            `receiver_id=${text(row, ['receiver_id']) ?? ''}`,
           );
           continue;
         }
@@ -285,7 +285,7 @@ export const possiblePartnerCallsStep: MigrationStep = {
             step,
             key,
             'usuario-caller-inexistente',
-            `caller_id=${String(row['caller_id'] ?? '')}`,
+            `caller_id=${text(row, ['caller_id']) ?? ''}`,
           );
           continue;
         }
@@ -333,7 +333,7 @@ export const callsStep: MigrationStep = {
             step,
             key,
             'usuario-caller-inexistente',
-            `caller_id=${String(row['caller_id'] ?? '')}`,
+            `caller_id=${text(row, ['caller_id']) ?? ''}`,
           );
           continue;
         }
@@ -344,7 +344,7 @@ export const callsStep: MigrationStep = {
             step,
             key,
             'usuario-receiver-inexistente-nulo',
-            `receiver_id=${String(row['receiver_id'] ?? '')}`,
+            `receiver_id=${text(row, ['receiver_id']) ?? ''}`,
           );
         }
 
@@ -392,7 +392,7 @@ export const notificationsStep: MigrationStep = {
             step,
             key,
             'usuario-inexistente',
-            `user_id=${String(row['user_id'] ?? '')}`,
+            `user_id=${text(row, ['user_id']) ?? ''}`,
           );
           continue;
         }

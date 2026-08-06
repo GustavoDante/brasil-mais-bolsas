@@ -4,7 +4,14 @@ import type {
   ScholarshipDto,
   ScholarshipTypeDto,
 } from "@/lib/api/dto";
-import { formatBRL, formatCity, formatShift, splitBRL, toNumber } from "@/lib/format";
+import {
+  formatBRL,
+  formatCity,
+  formatPeriod,
+  formatShift,
+  splitBRL,
+  toNumber,
+} from "@/lib/format";
 import { resolveImageUrl } from "@/lib/images";
 import type {
   BolsaCardData,
@@ -29,10 +36,10 @@ import type {
 const LAST_SPOTS_THRESHOLD = 5;
 const FALLBACK_DURATION_MONTHS = 12;
 
-const PLACEHOLDER_LOGO = "/mock/school-logo.png";
+const PLACEHOLDER_LOGO = "/placeholder/school-logo.png";
 const PLACEHOLDER_BANNER = "/hero.png";
-const PLACEHOLDER_MAP = "/mock/campus-map.png";
-const PLACEHOLDER_GALLERY_FEATURED = "/mock/campus-featured.png";
+const PLACEHOLDER_MAP = "/placeholder/campus-map.png";
+const PLACEHOLDER_GALLERY_FEATURED = "/placeholder/campus-featured.png";
 
 const MODALIDADE_BY_TYPE: Record<ScholarshipTypeDto, BolsaModalidade> = {
   PRESENCIAL: "Presencial",
@@ -84,7 +91,7 @@ export function toBolsaCard(dto: ScholarshipDto): BolsaCardData {
     neighborhood: district ? `${city} – ${district}` : city,
     modalidade: toModalidade(dto.type),
     shift: formatShift(dto.shift),
-    period: dto.period ?? "",
+    period: formatPeriod(dto.period),
     originalPrice: formatBRL(fullPrice),
     discountedPrice: discounted.amount,
     discountedPriceCents: discounted.cents,

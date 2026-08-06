@@ -1,11 +1,25 @@
-import { SiteHeader } from "@/components/site-header";
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
-import "./globals.css";
-import { SiteFooter } from "@/components/site-footer";
+
 import { JsonLd } from "@/components/json-ld";
-import { organizationJsonLd, webSiteJsonLd } from "@/lib/structured-data";
 import { siteConfig } from "@/lib/seo";
+import { organizationJsonLd, webSiteJsonLd } from "@/lib/structured-data";
+
+import "./globals.css";
+
+/**
+ * Layout raiz: o **único** lugar com `<html>`/`<body>`.
+ *
+ * Precisa viver aqui, e não dentro de um grupo de rota, porque grupo não aparece na URL
+ * mas continua sendo um nível da árvore: um layout com `<html>` dentro de `(public)`
+ * atende só as rotas daquele grupo, e `(auth)`/`(private)` sobem sem casca — o Next
+ * responde "Missing `<html>` and `<body>` tags in the root layout" em runtime, sem
+ * reprovar o build.
+ *
+ * Aqui ficam apenas as coisas que valem para o site inteiro: fontes, tokens do Tailwind,
+ * metadata base e a identidade JSON-LD referenciada por `@id` nas rotas. O cabeçalho e o
+ * rodapé são do grupo `(public)` — as telas de autenticação e o painel não os exibem.
+ */
 
 const inter = Inter({
   variable: "--font-inter",
@@ -79,9 +93,7 @@ export default function RootLayout({
         {/* Identidade do site: declarada uma vez e referenciada por `@id` nas rotas. */}
         <JsonLd data={[organizationJsonLd(), webSiteJsonLd()]} />
         <div className="flex min-h-screen flex-col bg-background text-foreground">
-          <SiteHeader />
           {children}
-          <SiteFooter />
         </div>
       </body>
     </html>

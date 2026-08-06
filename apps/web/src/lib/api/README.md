@@ -5,26 +5,30 @@ Camadas, de baixo para cima:
 ```
 src/lib/api/         transporte  → fala HTTP com a API (DTOs crus, snake_case)
 src/lib/mappers/     tradução    → DTO da API  ➜  modelo de UI (src/types)
-src/data/            dados       → o que as páginas do site importam (mock ou API)
+src/data/            dados       → o que as páginas do site importam
 src/actions/         actions     → uma por rota do backend (ver src/actions/README.md)
 ```
 
-Regra de ouro: **componente nunca importa `@/lib/api` nem `@/mocks`.** Componente importa
-`@/data/...` (leitura das páginas do site, com cache e chave de mocks) e `@/actions/...`
-(superfície completa da API: fluxos autenticados, backoffice e mutações). Assim a troca de
-mock por API não toca em nenhuma tela.
+Regra de ouro: **componente nunca importa `@/lib/api`.** Componente importa `@/data/...`
+(leitura das páginas do site, com cache) e `@/actions/...` (superfície completa da API:
+fluxos autenticados, backoffice e mutações). É essa fronteira que deixa trocar rota,
+formato de DTO ou estratégia de cache sem tocar em nenhuma tela.
 
-## Ligar a API de verdade
+**Não existe mais chave de mocks.** `src/data` fala com a API sempre; sem `API_URL` no ar
+a página quebra de propósito, em vez de mostrar dado inventado. Placeholders de arte
+(logo, mapa, galeria) continuam em `public/placeholder` porque são campos que a API ainda
+não tem — não são dados falsos, são o desenho ocupando o lugar.
+
+## Ambiente
 
 ```env
 # .env.local
 NEXT_PUBLIC_API_URL="http://localhost:3333"
-NEXT_PUBLIC_USE_MOCKS="false"
 NEXT_PUBLIC_IMAGES_BASE_URL="https://bucketbrasilmaisbolsas.s3.sa-east-1.amazonaws.com"
 ```
 
-Com `NEXT_PUBLIC_USE_MOCKS="true"` (padrão) tudo em `src/data` responde com os mocks de
-`src/mocks` — nenhuma requisição sai. É o estado atual do projeto.
+O host de `NEXT_PUBLIC_IMAGES_BASE_URL` precisa estar em `images.remotePatterns`
+(`next.config.ts`) — o `next/image` recusa host não declarado.
 
 Para conferir a integração sem abrir o site (a API precisa estar rodando):
 
@@ -109,20 +113,27 @@ vem em pt-BR pronta para a tela — o texto de cada erro é definido em
 texto próprio apenas para rede, timeout e resposta que não veio da nossa API (um 502 de
 proxy, por exemplo). Não adicione tradução de código aqui.
 
-## Migrar uma página de mock para API
+## Ligar uma tela nova na API
 
-1. Trocar o import do mock pela função de `src/data`.
-2. Se o componente for cliente e só precisar dos dados no primeiro render, buscar no
-   Server Component pai e passar por props.
+1. Buscar no Server Component (`page.tsx` ou um componente de servidor) com uma função de
+   `src/data` e passar o resultado por props.
+2. Componente de cliente que precisa buscar depois de uma interação usa `useApiQuery` com
+   a mesma função de `src/data` — nunca `fetch` solto nem `@/lib/api`.
 3. Rodar `npx tsx scripts/check-api-integration.ts` e conferir a forma dos dados.
-4. Quando nenhuma página usar mais aquele mock, apagar o arquivo em `src/mocks`.
 
 ## Pontos em aberto (backend)
 
 - `GET /v1/scholarships/:id` exige token, então o detalhe público é resolvido a partir da
   listagem (`getBolsaDetail` em `src/data/scholarships.data.ts`). Uma rota pública de
   detalhe simplificaria e deixaria a página mais leve.
-- `list/order` não pagina: hoje devolve todas as bolsas ativas (~2,5 mil). A paginação
-  ainda é feita no cliente.
-- Conteúdo editorial do detalhe (galeria, mapa, texto institucional) não existe na API e
-  segue com placeholders.
+- `list/order` não pagina: devolve todas as bolsas ativas de uma vez (~2,5 mil linhas,
+  ~5 MB). Passa do limite de 2 MB por entrada do cache de fetch do Next, então **não fica
+  em cache** — cada renderização do servidor baixa tudo de novo, e a paginação continua
+  sendo feita no cliente. É o gargalo mais caro da integração hoje.
+- `list/index` (vitrine da home) e `list/random` (destaques) não aceitam cidade, então o
+  seletor de cidade da home leva para `/bolsas?cidade=...` em vez de refiltrar a vitrine.
+- `category` existe como filtro em `list/order`, mas ainda não é parâmetro da query string
+  pública de `/bolsas` — na home ele só entra como dimensão do analytics.
+- Não há imagem por curso nem por categoria; os cards usam a arte de
+  `public/placeholder`. Conteúdo editorial do detalhe (galeria, mapa, texto
+  institucional) também não existe na API.

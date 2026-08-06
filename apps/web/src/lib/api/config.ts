@@ -28,13 +28,6 @@ export const apiConfig = {
   /** Timeout de cada requisição, em milissegundos. */
   timeoutMs: toNumber(process.env.NEXT_PUBLIC_API_TIMEOUT_MS, 15_000),
 
-  /**
-   * Enquanto `true`, a camada de dados (`src/data`) devolve os mocks de `src/mocks`
-   * sem tocar na rede. Trocar para "false" liga a API de verdade — nenhuma página
-   * precisa ser alterada.
-   */
-  useMocks: (process.env.NEXT_PUBLIC_USE_MOCKS ?? "true") !== "false",
-
   /** Revalidação padrão (em segundos) do cache de dados públicos de catálogo. */
   revalidateSeconds: toNumber(process.env.NEXT_PUBLIC_API_REVALIDATE, 300),
 

@@ -66,6 +66,40 @@ export function formatShift(shift: string | null | undefined): string {
     .join(" ");
 }
 
+/**
+ * `'[{"value":"2026.1"}]'` → `"2026.1"`.
+ *
+ * O `period` da bolsa não é texto: a API antiga gravava o componente de tags do
+ * formulário serializado em JSON, e a base migrada herdou o formato em todas as linhas.
+ * Sem isto, a tela mostra o JSON cru. Valor fora do padrão é devolvido como veio, para
+ * um registro escrito à mão não sumir da interface.
+ */
+export function formatPeriod(period: string | null | undefined): string {
+  const raw = period?.trim();
+  if (!raw) return "";
+  if (!raw.startsWith("[") && !raw.startsWith("{")) return raw;
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    const entries = Array.isArray(parsed) ? parsed : [parsed];
+
+    const values = entries
+      .map((entry) =>
+        typeof entry === "string"
+          ? entry
+          : typeof (entry as { value?: unknown })?.value === "string"
+            ? ((entry as { value: string }).value)
+            : ""
+      )
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    return values.length > 0 ? values.join(", ") : "";
+  } catch {
+    return raw;
+  }
+}
+
 /** `"RECIFE"` → `"Recife"` (a base legada tem cidades em caixa alta). */
 export function formatCity(city: string | null | undefined): string {
   if (!city) return "";

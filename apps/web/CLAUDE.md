@@ -48,7 +48,7 @@ src/
       _components/          # route-specific components (not shared)
   components/               # global shared components (site-header, site-footer)
     ui/                     # shadcn/ui primitives — imported via @/components/ui
-  data/                     # camada de dados que as PÁGINAS consomem (mock ou API)
+  data/                     # camada de dados que as PÁGINAS consomem (sempre a API)
   actions/                  # uma action por rota da API, agrupadas por módulo
     _core/                  #   contrato de resultado/erro, validação zod, sessão
     <módulo>/               #   um arquivo por rota (ver actions/README.md)
@@ -69,10 +69,9 @@ src/
   schemas/                  # schemas zod de entrada — 1 schema + 1 tipo por arquivo
     <módulo>/               #   espelha os módulos de actions/ (faq/update-faq.schema.ts)
     *.schema.ts             #   na raiz, os que são só de UI (newsletter, filtros)
-  mocks/                    # dados mockados, consumidos por src/data enquanto
-                             #   NEXT_PUBLIC_USE_MOCKS != "false"
 scripts/                    # utilitários fora do build (check-api-integration.ts)
 public/                     # static assets (served at /)
+  placeholder/              #   arte que ocupa o lugar de campo que a API não tem
 ```
 
 ## Conventions
@@ -87,10 +86,11 @@ public/                     # static assets (served at /)
 - **Styling / design tokens:** update the CSS variables in `src/app/globals.css`
   whenever design tokens change — do not hardcode colors in components.
 - **zod v4:** the `error` param replaced `required_error`/`invalid_type_error`.
-- **Mock data:** os dados mockados vivem em `src/mocks/<domain>.mock.ts` e são consumidos
-  **pela camada de dados**, não pelas páginas. Os tipos ficam em `src/types` — o mock é só
-  a fonte temporária. Quando uma rota passar a usar a API de verdade e nenhum `src/data`
-  depender mais do arquivo, apague o mock.
+- **Sem dados mockados.** `src/data` fala com a API sempre — não há chave para desligar.
+  Campo que a API ainda não tem (imagem de curso, galeria e mapa do campus) usa arte de
+  `public/placeholder`, declarada como constante no mapper ou no componente e comentada
+  com o motivo. Nunca reintroduza uma lista de domínio escrita à mão no frontend: se o
+  dado existe no banco, ele vem por `@/data`.
 
 ## Integração com a API (obrigatório)
 
@@ -99,10 +99,14 @@ Documentação completa em [src/lib/api/README.md](./src/lib/api/README.md).
 Camadas: `lib/api` (transporte/DTOs) → `lib/mappers` (DTO → modelo de UI) → `data`
 (o que as páginas importam) → `actions` (mutações via Server Actions).
 
-- **Componentes nunca importam `@/lib/api` nem `@/mocks`.** Leitura vem de `@/data/...`,
-  escrita de `@/actions/...`. É isso que permite trocar mock por API sem tocar em telas.
-- **Chave mock/API:** `NEXT_PUBLIC_USE_MOCKS` (padrão `"true"`). Cada função de `src/data`
-  precisa ter os dois caminhos — mock e API — para a troca continuar sendo só uma variável.
+- **Componentes nunca importam `@/lib/api`.** Leitura vem de `@/data/...`, escrita de
+  `@/actions/...`. É essa fronteira que permite trocar rota, DTO ou cache sem tocar em tela.
+- **Client Component não busca sozinho.** O Server Component pai chama `@/data` e passa
+  por props; o que só existe depois de uma interação usa `useApiQuery` com a mesma função
+  de `@/data`. `fetch` solto dentro de componente é bug, não atalho.
+- **Imagem remota precisa de host liberado** em `images.remotePatterns` (`next.config.ts`).
+  O bucket de uploads da API já está lá; host novo sem entrada faz o `next/image` recusar
+  a URL em tempo de execução — e o erro não aparece no build.
 - **Tipos:** os DTOs (snake_case) são **derivados de `@repo/contracts`** em
   `src/lib/api/dto/index.ts` — gerados do `schema.prisma`, nunca escritos à mão. Esse
   arquivo só dá a eles os nomes `*Dto` e monta o que existe só na resposta HTTP

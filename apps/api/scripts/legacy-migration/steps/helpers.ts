@@ -83,5 +83,5 @@ export function requireInt(
 }
 
 export function legacyKeyOf(row: LegacyRow): string {
-  return String(row['id'] ?? '');
+  return text(row, ['id']) ?? '';
 }

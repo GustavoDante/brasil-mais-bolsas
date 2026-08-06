@@ -52,3 +52,13 @@ export async function signOut(): Promise<ActionResult<null>> {
   await clearSessionToken();
   return { ok: true, data: null, message: "Sessão encerrada." };
 }
+
+/**
+ * Adaptador para `<form action={...}>`, que exige retorno `void`.
+ *
+ * Não há para onde levar o `ActionResult` num form sem JS: apagar o cookie não falha, e o
+ * guard de `(private)` já redireciona sozinho quando a sessão some.
+ */
+export async function signOutForm(): Promise<void> {
+  await signOut();
+}

@@ -1,9 +1,9 @@
 /**
  * Modelos de domínio consumidos pela UI.
  *
- * São a fronteira entre a API e os componentes: tanto os mocks (`src/mocks`) quanto os
- * mappers (`src/lib/mappers`) produzem exatamente estas formas, então trocar mock por API
- * não muda nenhum componente.
+ * São a fronteira entre a API e os componentes: os mappers (`src/lib/mappers`) produzem
+ * exatamente estas formas a partir dos DTOs, e é só isto que os componentes enxergam —
+ * nada de `snake_case` nem de `Decimal` como string na tela.
  */
 
 export type BolsaModalidade = "Presencial" | "Semi" | "EaD";
@@ -68,12 +68,6 @@ export interface ScholarshipCardData {
   school: string;
   discount: string;
   priceFrom: string;
-  image: string;
-}
-
-export interface CourseCategoryData {
-  id: string;
-  title: string;
   image: string;
 }
 
