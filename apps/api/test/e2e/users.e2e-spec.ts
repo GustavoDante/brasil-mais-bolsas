@@ -103,6 +103,22 @@ describe('Users (e2e)', () => {
         .send(validCreateUserWithAddressPayload)
         .expect(403));
 
+    it('deve retornar 201 com type dentro do conjunto permitido', () =>
+      request(app.getHttpServer())
+        .post('/v1/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...validCreateUserWithAddressPayload, type: 'manager' })
+        .expect(201));
+
+    it('deve retornar 400 com type fora do conjunto permitido', () =>
+      // Antes o campo era `z.string()`: qualquer papel inventado era gravado no banco e só
+      // aparecia quando alguma checagem `type === 'admin'` silenciosamente não casava.
+      request(app.getHttpServer())
+        .post('/v1/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...validCreateUserWithAddressPayload, type: 'seller' })
+        .expect(400));
+
     // Média prioridade: validação de input
     it('deve retornar 400 com payload vazio', () =>
       request(app.getHttpServer())

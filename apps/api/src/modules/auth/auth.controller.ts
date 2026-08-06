@@ -20,7 +20,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 type AuthenticatedRequest = Request & { user: UserSafe };
 
 type JwtAuthenticatedRequest = Request & {
-  user: { userId: string; email: string; type: string };
+  user: { userId: string; email: string; type: string; institution_id?: string };
 };
 
 @ApiTags('auth')
@@ -101,6 +101,12 @@ export class AuthController {
   @ApiResponse({ status: 200, type: AuthProfileDto })
   @Get('me')
   getProfile(@Req() req: JwtAuthenticatedRequest): AuthProfileDto {
-    return req.user;
+    // Devolve o que está no token, sem consultar o banco. Um fallback só aqui faria esta
+    // rota mentir: ela reportaria o gestor escopado enquanto `/institutions`, `/courses`,
+    // `/scholarships` e `/reports` continuariam lendo a claim vazia do mesmo token. O lugar
+    // honesto para um fallback seria o `JwtStrategy`, ao custo de um SELECT por requisição
+    // em toda rota autenticada — a janela se fecha rotacionando `JWT_SECRET` no deploy.
+    // A normalização para `null` é o que distingue "sem vínculo" de "chave ausente" no web.
+    return { ...req.user, institution_id: req.user.institution_id ?? null };
   }
 }

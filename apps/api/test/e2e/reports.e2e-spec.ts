@@ -1,12 +1,13 @@
 import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createTestApp } from './shared';
+import { createTestApp, reportsServiceMock } from './shared';
 
 describe('Reports (e2e)', () => {
   let app: INestApplication;
   let adminToken = '';
   let managerToken = '';
   let userToken = '';
+  let adminWithInstitutionToken = '';
 
   beforeAll(async () => {
     const { app: testApp, tokens } = await createTestApp();
@@ -14,6 +15,7 @@ describe('Reports (e2e)', () => {
     adminToken = tokens.adminToken;
     managerToken = tokens.managerToken;
     userToken = tokens.userToken;
+    adminWithInstitutionToken = tokens.adminWithInstitutionToken;
   });
 
   afterAll(async () => {
@@ -114,6 +116,46 @@ describe('Reports (e2e)', () => {
         .get('/v1/reports/general')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(400));
+
+    it('deve escopar pelo institution_id quando quem pede é gestor', async () => {
+      reportsServiceMock.getGeneralReport.mockClear();
+
+      await request(app.getHttpServer())
+        .get('/v1/reports/general')
+        .query({
+          institution: 'all',
+          course: 'all',
+          start_date: '2023-01-01',
+          end_date: '2023-12-31',
+        })
+        .set('Authorization', `Bearer ${managerToken}`)
+        .expect(200);
+
+      expect(reportsServiceMock.getGeneralReport).toHaveBeenCalledWith(
+        expect.anything(),
+        'institution-1',
+      );
+    });
+
+    it('nao deve escopar o admin que tenha instituicao propria', async () => {
+      reportsServiceMock.getGeneralReport.mockClear();
+
+      await request(app.getHttpServer())
+        .get('/v1/reports/general')
+        .query({
+          institution: 'all',
+          course: 'all',
+          start_date: '2023-01-01',
+          end_date: '2023-12-31',
+        })
+        .set('Authorization', `Bearer ${adminWithInstitutionToken}`)
+        .expect(200);
+
+      expect(reportsServiceMock.getGeneralReport).toHaveBeenCalledWith(
+        expect.anything(),
+        undefined,
+      );
+    });
   });
 
   describe('GET /v1/reports/payments', () => {

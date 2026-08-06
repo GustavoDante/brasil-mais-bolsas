@@ -20,12 +20,14 @@ describe('Institutions (e2e)', () => {
   let app: INestApplication;
   let adminToken = '';
   let managerToken = '';
+  let staleManagerToken = '';
 
   beforeAll(async () => {
     const { app: testApp, tokens } = await createTestApp();
     app = testApp;
     adminToken = tokens.adminToken;
     managerToken = tokens.managerToken;
+    staleManagerToken = tokens.staleManagerToken;
   });
 
   afterAll(async () => {
@@ -41,6 +43,38 @@ describe('Institutions (e2e)', () => {
         .get('/v1/institutions')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200));
+
+    it('deve repassar o institution_id do gestor para o service', async () => {
+      institutionsServiceMock.findAll.mockClear();
+
+      await request(app.getHttpServer())
+        .get('/v1/institutions')
+        .set('Authorization', `Bearer ${managerToken}`)
+        .expect(200);
+
+      expect(institutionsServiceMock.findAll).toHaveBeenCalledWith(
+        'manager',
+        'manager-1',
+        'institution-1',
+      );
+    });
+
+    it('deve repassar undefined para gestor com token anterior a claim', async () => {
+      institutionsServiceMock.findAll.mockClear();
+
+      await request(app.getHttpServer())
+        .get('/v1/institutions')
+        .set('Authorization', `Bearer ${staleManagerToken}`)
+        .expect(200);
+
+      // O service devolve `[]` nesse caso. Comportamento esperado durante a janela de
+      // migração — some assim que o `JWT_SECRET` for rotacionado e o gestor logar de novo.
+      expect(institutionsServiceMock.findAll).toHaveBeenCalledWith(
+        'manager',
+        'manager-1',
+        undefined,
+      );
+    });
   });
 
   describe('GET /v1/institutions/search', () => {

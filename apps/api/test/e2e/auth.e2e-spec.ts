@@ -6,11 +6,15 @@ import { AppException } from '../../src/common/exceptions/app.exception';
 describe('Auth (e2e)', () => {
   let app: INestApplication;
   let adminToken = '';
+  let managerToken = '';
+  let staleManagerToken = '';
 
   beforeAll(async () => {
     const { app: testApp, tokens } = await createTestApp();
     app = testApp;
     adminToken = tokens.adminToken;
+    managerToken = tokens.managerToken;
+    staleManagerToken = tokens.staleManagerToken;
   });
 
   afterAll(async () => {
@@ -75,6 +79,35 @@ describe('Auth (e2e)', () => {
 
       expect(response.body.userId).toBe('admin-1');
       expect(response.body.type).toBe('admin');
+    });
+
+    it('deve devolver o institution_id do gestor', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/v1/auth/me')
+        .set('Authorization', `Bearer ${managerToken}`)
+        .expect(200);
+
+      expect(response.body.institution_id).toBe('institution-1');
+    });
+
+    it('deve devolver institution_id null para quem nao tem vinculo', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/v1/auth/me')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect(response.body.institution_id).toBeNull();
+    });
+
+    it('deve devolver institution_id null para token emitido antes da claim existir', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/v1/auth/me')
+        .set('Authorization', `Bearer ${staleManagerToken}`)
+        .expect(200);
+
+      // A rota lê o token, não o banco: durante a janela de migração o gestor aparece sem
+      // vínculo, e é por isso que o deploy precisa rotacionar o `JWT_SECRET`.
+      expect(response.body.institution_id).toBeNull();
     });
   });
 

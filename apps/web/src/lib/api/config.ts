@@ -55,4 +55,14 @@ export const cacheTags = {
   institutions: "institutions",
   cities: "cities",
   faq: "faq",
+
+  /**
+   * Recursos privados. As leituras do painel são `no-store` (dado autenticado não entra em
+   * cache compartilhado), então estas tags ainda não invalidam leitura nenhuma — existem
+   * como alvo de `revalidateTags` das telas de escrita do backoffice.
+   */
+  orders: "orders",
+  order: (id: string) => `order:${id}`,
+  users: "users",
+  reports: "reports",
 } as const;

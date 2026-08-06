@@ -65,7 +65,14 @@ export type PartnerDto = Partner & {
 };
 export type AccessDto = Access;
 export type SellerDto = Seller;
-export type InstitutionDto = Institution;
+export type InstitutionDto = Institution & {
+  /**
+   * Agregados que `GET /institutions` calcula **só para admin** — o gestor recebe a
+   * instituição crua. Por isso são opcionais: quem lê precisa tratar a ausência.
+   */
+  offered_scholarships?: number;
+  scholarships_sold?: number;
+};
 export type PaymentDto = Payment;
 export type SignedContractDto = SignedContract;
 export type IndicationDto = Indication;
@@ -119,7 +126,14 @@ export type ScholarshipFullDto = Scholarship & {
   course?: NamedEntity | null;
   institution?: (NamedEntity & { city?: string | null }) | null;
   institution_name?: string;
+  institution_city?: string | null;
+  institution_district?: string | null;
+  seller_id?: string;
+  seller_name?: string;
+  course_name?: string;
   payments_count?: number;
+  /** `list/backoffice`: pagamentos com status `PAID`, ou seja, bolsas efetivamente vendidas. */
+  quantity_sold?: number;
 };
 
 /** `GET /scholarships/contract/:id` */

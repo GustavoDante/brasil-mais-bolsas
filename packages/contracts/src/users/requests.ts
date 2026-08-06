@@ -11,6 +11,7 @@ import {
   zState,
   zText,
 } from '../primitives';
+import { UserTypeSchema } from '../user-types';
 
 /**
  * Endereço enviado junto com o usuário.
@@ -56,7 +57,7 @@ const userBaseShape = {
 export const CreateUserSchema = z
   .object({
     ...userBaseShape,
-    type: z.string().optional(),
+    type: UserTypeSchema.optional(),
     observations: z.string().max(2000).optional(),
     partner_id: z.string().optional(),
     institution_id: z.string().optional(),
@@ -78,7 +79,7 @@ export const UpdateUserSchema = z
 
 /** Só admin muda `type` e `active` — por isso é um schema à parte, não um campo opcional. */
 export const AdminUpdateUserSchema = UpdateUserSchema.extend({
-  type: z.enum(['admin', 'manager', 'user']).optional(),
+  type: UserTypeSchema.optional(),
   active: zOptionalBoolean(),
 })
   .strict()

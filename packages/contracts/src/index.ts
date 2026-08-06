@@ -17,6 +17,7 @@ export * from './enums';
 export * from './errors';
 export * from './models';
 export * from './primitives';
+export * from './user-types';
 
 // --- Módulos da API ----------------------------------------------------------------
 // Um módulo aqui = um módulo da API. Rota nova ⇒ schema novo no módulo correspondente.

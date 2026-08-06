@@ -9,4 +9,12 @@ export class AuthProfileDto {
 
   @ApiProperty({ example: 'user' })
   type!: string;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    example: 'cku1f7b2a0001m5sdf5a4b1c2',
+    description: 'Instituição do gestor. `null` para admin e aluno.',
+  })
+  institution_id?: string | null;
 }

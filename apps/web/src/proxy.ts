@@ -13,8 +13,13 @@ import { apiConfig } from "@/lib/api/config";
  * demais para todo request — essa checagem fica no `(private)/layout.tsx`, que já tem a
  * sessão memoizada.
  *
- * O `matcher` enxerga o caminho real da URL, e grupos de rota (`(private)`) não aparecem
- * nela: **toda rota nova dentro de `(private)` precisa ser somada aqui**.
+ * O `matcher` enxerga o caminho real da URL, e grupos de rota (`(private)`, `(management)`,
+ * `(student)`) não aparecem nela: **toda rota nova dentro de `(private)` precisa ser somada
+ * aqui**. Grupo novo ⇒ entrada nova no `matcher`, senão as telas dele ficam sem a primeira
+ * camada e só o layout as protege.
+ *
+ * Esta camada não sabe de papel — só de "tem cookie". Quem decide qual painel cabe a quem
+ * é `@/lib/auth/guards`, que precisa do perfil validado.
  */
 export function proxy(request: NextRequest) {
   if (request.cookies.has(apiConfig.sessionCookieName)) {
@@ -39,5 +44,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  // `:path*` casa zero segmentos, então `/dashboard` e `/aluno` também entram.
+  matcher: ["/dashboard/:path*", "/aluno/:path*"],
 };

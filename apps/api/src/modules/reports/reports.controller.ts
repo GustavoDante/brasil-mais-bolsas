@@ -130,7 +130,13 @@ export class ReportsController {
     if (req.user.type !== 'admin' && req.user.type !== 'manager') {
       throw new AppException('forbidden');
     }
-    const payments = await this.reportsService.getGeneralReport(query, req.user.institution_id);
+    // Só o gestor é escopado pelo próprio vínculo. Passar `req.user.institution_id` cru era
+    // inofensivo enquanto o login não assinava a claim; agora que assina, um admin cuja
+    // linha `User` tenha `institution_id` teria o relatório silenciosamente restrito a essa
+    // instituição e o `?institution=` deixaria de funcionar para ele. Mesma guarda que
+    // `/impact` já usa logo abaixo.
+    const scopedInstitutionId = req.user.type === 'manager' ? req.user.institution_id : undefined;
+    const payments = await this.reportsService.getGeneralReport(query, scopedInstitutionId);
     return { ok: true, payments };
   }
 

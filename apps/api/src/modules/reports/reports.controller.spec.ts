@@ -111,17 +111,36 @@ describe('ReportsController', () => {
   });
 
   describe('getGeneralReport', () => {
-    it('deve bloquear user comum', async () => {
-      const query: GeneralReportQueryDto = {
-        institution: 'all',
-        course: 'all',
-        start_date: '2024-01-01',
-        end_date: '2024-12-31',
-      };
+    const query: GeneralReportQueryDto = {
+      institution: 'all',
+      course: 'all',
+      start_date: '2024-01-01',
+      end_date: '2024-12-31',
+    };
 
+    it('deve bloquear user comum', async () => {
       await expect(controller.getGeneralReport(query, makeReq(userJwt))).rejects.toMatchObject({
         httpStatus: 403,
       });
+    });
+
+    it('deve escopar o relatorio pelo institution_id do manager', async () => {
+      service.getGeneralReport.mockResolvedValue([] as never);
+
+      await controller.getGeneralReport(query, makeReq(managerJwt));
+
+      expect(service.getGeneralReport).toHaveBeenCalledWith(query, 'inst-1');
+    });
+
+    it('nao deve escopar o relatorio do admin que tenha institution_id', async () => {
+      service.getGeneralReport.mockResolvedValue([] as never);
+      const adminComVinculo = { ...adminJwt, institution_id: 'inst-9' };
+
+      await controller.getGeneralReport(query, makeReq(adminComVinculo));
+
+      // Escopar aqui restringiria o admin em silêncio e faria o `?institution=` dele parar
+      // de funcionar — o vínculo do admin não é filtro de relatório.
+      expect(service.getGeneralReport).toHaveBeenCalledWith(query, undefined);
     });
   });
 

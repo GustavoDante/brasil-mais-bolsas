@@ -13,7 +13,7 @@ Este documento mapeia todos os endpoints da API com os status codes testados. St
 | Endpoint                      | Método | 200/201 | 400 | 401 | 403 | 429 | Testes |
 | ----------------------------- | ------ | ------- | --- | --- | --- | --- | ------ |
 | POST /v1/auth/login           | POST   | ✅      | ✗   | ✅  | —   | ✅  | 5      |
-| GET /v1/auth/me               | GET    | ✅      | —   | ✅  | —   | —   | 2      |
+| GET /v1/auth/me               | GET    | ✅      | —   | ✅  | —   | —   | 5      |
 | POST /v1/auth/register        | POST   | ✅      | ✅  | —   | —   | —   | 5      |
 | POST /v1/auth/forgot_password | POST   | ✅      | ✅  | —   | —   | —   | 3      |
 | POST /v1/auth/password_reset  | POST   | ✅      | ✅  | —   | —   | —   | 4      |
@@ -48,7 +48,7 @@ Este documento mapeia todos os endpoints da API com os status codes testados. St
 | GET /v1/users              | GET    | ✅      | —   | ✅  | ✅  | —   | 3      |
 | GET /v1/users/me           | GET    | ✅      | —   | —   | —   | —   | 1      |
 | GET /v1/users/:id          | GET    | ✅      | —   | —   | ✅  | —   | 2      |
-| POST /v1/users             | POST   | ✅      | ✅  | ✅  | ✅  | —   | 8      |
+| POST /v1/users             | POST   | ✅      | ✅  | ✅  | ✅  | —   | 10     |
 | PUT /v1/users/me           | PUT    | ✅      | —   | —   | —   | —   | 1      |
 | PUT /v1/users/:id          | PUT    | ✅      | —   | —   | ✅  | —   | 2      |
 | PATCH /v1/users/:id/toggle | PATCH  | ✅      | —   | ✅  | ✅  | —   | 4      |
@@ -128,7 +128,7 @@ Nenhum identificado para rotas principais
 
 | Endpoint                            | Método | 200/201 | 400 | 401 | 403 | 429 | Testes |
 | ----------------------------------- | ------ | ------- | --- | --- | --- | --- | ------ |
-| GET /v1/institutions                | GET    | ✅      | —   | ✅  | —   | —   | 2      |
+| GET /v1/institutions                | GET    | ✅      | —   | ✅  | —   | —   | 4      |
 | GET /v1/institutions/search         | GET    | ✅      | —   | ✅  | —   | —   | 2      |
 | GET /v1/institutions/search/by_city | GET    | ✅      | —   | ✅  | —   | —   | 2      |
 | GET /v1/institutions/id/:id         | GET    | ✅      | —   | ✅  | —   | —   | 2      |
@@ -327,7 +327,7 @@ Nenhum identificado para rotas principais
 | GET /v1/reports/students/to_call    | GET    | ✅      | —   | —   | ✅  | —   | 2      |
 | GET /v1/reports/students/renewals   | GET    | ✅      | ✅  | —   | ✅  | —   | 2      |
 | GET /v1/reports/students/defaulters | GET    | ✅      | —   | —   | ✅  | —   | 1      |
-| GET /v1/reports/general             | GET    | ✅      | ✅  | —   | ✅  | —   | 2      |
+| GET /v1/reports/general             | GET    | ✅      | ✅  | —   | ✅  | —   | 4      |
 | GET /v1/reports/payments            | GET    | ✅      | ✅  | —   | —   | —   | 2      |
 | GET /v1/reports/impact              | GET    | ✅      | —   | —   | ✅  | —   | 2      |
 

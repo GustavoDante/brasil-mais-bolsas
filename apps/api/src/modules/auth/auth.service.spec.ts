@@ -140,6 +140,32 @@ describe('AuthService', () => {
         type: safeUser.type,
       });
     });
+
+    it('deve incluir institution_id no payload quando o usuario tem vinculo', async () => {
+      const manager = { ...mockUser, type: 'manager', institution_id: 'inst-1' } as UserSafe;
+      jwtService.signAsync.mockResolvedValue('jwt.token.aqui');
+
+      await service.login(manager);
+
+      expect(jwtService.signAsync).toHaveBeenCalledWith({
+        sub: manager.id,
+        email: manager.email,
+        type: 'manager',
+        institution_id: 'inst-1',
+      });
+    });
+
+    it('deve omitir a chave institution_id quando o usuario nao tem vinculo', async () => {
+      const safeUser = { ...mockUser } as UserSafe;
+      jwtService.signAsync.mockResolvedValue('jwt.token.aqui');
+
+      await service.login(safeUser);
+
+      // `toHaveBeenCalledWith` casa por igualdade profunda, então uma chave presente com
+      // valor `undefined` reprovaria — é justamente o que o spread condicional evita.
+      const [payload] = jwtService.signAsync.mock.calls[0] as [Record<string, unknown>];
+      expect(Object.keys(payload).sort()).toEqual(['email', 'sub', 'type']);
+    });
   });
 
   describe('register', () => {
@@ -173,6 +199,17 @@ describe('AuthService', () => {
         name: mockUser.name,
       });
       expect(result.accessToken).toBe('jwt.token.aqui');
+    });
+
+    it('nao deve emitir institution_id para cadastro publico', async () => {
+      usersService.register.mockResolvedValue({ ...mockUser, address: null });
+      usersService.toSafeUser.mockReturnValue({ ...mockUser });
+      jwtService.signAsync.mockResolvedValue('jwt.token.aqui');
+
+      await service.register(registerDto);
+
+      const [payload] = jwtService.signAsync.mock.calls[0] as [Record<string, unknown>];
+      expect(payload).not.toHaveProperty('institution_id');
     });
 
     it('nao deve engolir erro de cadastro (ex: email duplicado)', async () => {

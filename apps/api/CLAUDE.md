@@ -255,10 +255,24 @@ corpo de erro, já que os demais e2e só olham status.
 - Autenticação é baseada em JWT (access token de curta duração, padrão 24h configurável
   via `JWT_EXPIRES_IN`).
 - `LocalStrategy` valida email + senha/CPF via bcrypt.
-- `JwtStrategy` valida o token e popula `req.user` com `{ userId, email, type }`.
+- `JwtStrategy` valida o token e popula `req.user` com
+  `{ userId, email, type, institution_id? }`.
 - Guards de autenticação ficam em `src/modules/auth/guards/`. Guards reutilizáveis em
   múltiplos módulos ficam em `src/common/guards/`.
-- O payload do JWT contém apenas `{ sub, email, type }` — nunca dados sensíveis.
+- O payload do JWT contém `{ sub, email, type }` e, para quem tem vínculo com uma
+  instituição (gestor), `institution_id` — a chave de escopo que `/v1/institutions`,
+  `/v1/courses`, `/v1/scholarships/list/backoffice` e `/v1/reports/*` leem de `req.user`.
+  Nunca dados sensíveis.
+- **Claim nova só alcança sessão já emitida depois de rotacionar `JWT_SECRET`** (ou de
+  passar o `JWT_EXPIRES_IN`). Até lá as rotas que escopam por `institution_id` se comportam
+  como se o usuário não tivesse vínculo — no caso do gestor, isso significa `[]` em
+  `/v1/institutions` e listagem sem escopo nas demais. Rotação entra no runbook do deploy.
+- **Quem escopa por `institution_id` checa `type === 'manager'` antes.** Ler
+  `req.user.institution_id` cru restringe também o admin que por acaso tenha vínculo, e faz
+  o `?institution=` dele parar de funcionar sem erro nenhum. `reports.controller.ts` faz
+  isso nas duas rotas (`/general` e `/impact`); `orders.service.ts` (`resolveManagerInstitutionId`)
+  ainda resolve pelo banco quando a claim falta — de propósito, porque cobre também o admin
+  que troca a instituição de um gestor no meio da sessão.
 - Rotas protegidas usam `@UseGuards(JwtAuthGuard)`. Rotas públicas não precisam de
   decorador adicional (o guard não é global).
 

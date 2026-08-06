@@ -17,6 +17,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { homeRouteFor } from "@/lib/auth/roles";
 import { isSafeRedirectPath, withCallbackUrl } from "@/lib/utils";
 import {
   signInInputSchema,
@@ -50,7 +51,14 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       return;
     }
 
-    router.push(isSafeRedirectPath(callbackUrl) ? callbackUrl : "/dashboard");
+    // O `callbackUrl` continua ganhando; só o fallback passou a depender do papel. Se o
+    // destino pedido não couber ao papel (aluno com `?callbackUrl=/dashboard`), quem
+    // devolve é a guarda no servidor — a regra que protege dado mora num lugar só.
+    router.push(
+      isSafeRedirectPath(callbackUrl)
+        ? callbackUrl
+        : homeRouteFor(result.data.type),
+    );
     // Sem isso o layout raiz continua com a sessão antiga e o header não atualiza.
     router.refresh();
   };

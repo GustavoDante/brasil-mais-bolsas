@@ -37,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { homeRouteFor } from "@/lib/auth/roles";
 import { isSafeRedirectPath } from "@/lib/utils";
 import {
   fetchAddressByCep,
@@ -231,8 +232,14 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
       return;
     }
 
-    // O cadastro já devolve sessão gravada — o aluno entra direto.
-    router.push(isSafeRedirectPath(callbackUrl) ? callbackUrl : "/dashboard");
+    // O cadastro já devolve sessão gravada — o aluno entra direto. O papel sempre sai
+    // `user` desta rota, mas o destino passa por `homeRouteFor` do mesmo jeito: assim não
+    // há uma rota escrita à mão para desatualizar se o cadastro um dia ganhar outro caminho.
+    router.push(
+      isSafeRedirectPath(callbackUrl)
+        ? callbackUrl
+        : homeRouteFor(result.data.type),
+    );
     router.refresh();
   };
 

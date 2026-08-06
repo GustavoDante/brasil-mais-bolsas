@@ -718,7 +718,15 @@ export function setupUploadsServiceMocks(): void {
 // ============ APP INITIALIZATION ============
 export async function createTestApp(): Promise<{
   app: INestApplication;
-  tokens: { adminToken: string; managerToken: string; userToken: string };
+  tokens: {
+    adminToken: string;
+    managerToken: string;
+    userToken: string;
+    /** Admin com vínculo de instituição — nenhuma rota deve escopá-lo por isso. */
+    adminWithInstitutionToken: string;
+    /** Gestor com token anterior à claim `institution_id` (janela de migração). */
+    staleManagerToken: string;
+  };
 }> {
   process.env.JWT_SECRET = 'e2e-secret';
   process.env.JWT_EXPIRES_IN = '1h';
@@ -800,8 +808,25 @@ export async function createTestApp(): Promise<{
   });
   const userToken = jwtService.sign({ sub: 'user-1', email: 'user@test.com', type: 'user' });
 
+  // Admin que por acaso tem vínculo com uma instituição. Existe para provar que nenhuma
+  // rota escopa o admin pelo próprio `institution_id` — o vínculo dele não é filtro.
+  const adminWithInstitutionToken = jwtService.sign({
+    sub: 'admin-2',
+    email: 'admin2@test.com',
+    type: 'admin',
+    institution_id: 'institution-1',
+  });
+
+  // Gestor com token emitido ANTES do login passar a assinar a claim. Documenta a janela de
+  // migração: até a rotação do `JWT_SECRET` ele se comporta como quem não tem vínculo.
+  const staleManagerToken = jwtService.sign({
+    sub: 'manager-1',
+    email: 'manager@test.com',
+    type: 'manager',
+  });
+
   return {
     app,
-    tokens: { adminToken, managerToken, userToken },
+    tokens: { adminToken, managerToken, userToken, adminWithInstitutionToken, staleManagerToken },
   };
 }

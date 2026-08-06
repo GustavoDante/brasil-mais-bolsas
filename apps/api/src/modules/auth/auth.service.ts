@@ -46,10 +46,18 @@ export class AuthService {
   }
 
   async login(user: UserSafe): Promise<AuthResponseDto> {
+    // `institution_id` entra por spread condicional, não como `?? undefined`: é a chave de
+    // escopo que `/institutions`, `/courses`, `/scholarships` e `/reports` leem de
+    // `req.user`, e quem não tem vínculo (aluno, admin) continua com um token de 3 claims.
+    // Ela era declarada em `JwtPayload` e lida pelo `JwtStrategy`, mas nunca era assinada —
+    // ou seja, todo gestor em produção caía no ramo sem escopo e via dado de outras
+    // instituições. Token já emitido só ganha a claim depois de um novo login: rotacione
+    // `JWT_SECRET` no deploy para fechar a janela.
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       type: user.type,
+      ...(user.institution_id ? { institution_id: user.institution_id } : {}),
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
