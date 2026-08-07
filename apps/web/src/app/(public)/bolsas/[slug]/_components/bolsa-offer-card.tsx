@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { BolsaDetailData } from "@/types/scholarship";
@@ -44,8 +46,12 @@ export function BolsaOfferCard({ data }: BolsaOfferCardProps) {
         </p>
       </div>
 
-      <Button className="mt-9 h-[66px] w-full justify-center rounded-xl bg-brand-blue-700 text-2xl font-bold text-neutral-100 hover:bg-brand-blue-800">
-        Quero esta bolsa
+      {/* `asChild` mantém o card como Server Component: a navegação é um link, não um handler. */}
+      <Button
+        asChild
+        className="mt-9 h-[66px] w-full justify-center rounded-xl bg-brand-blue-700 text-2xl font-bold text-neutral-100 hover:bg-brand-blue-800"
+      >
+        <Link href={`/bolsas/${data.id}/assinatura`}>Quero esta bolsa</Link>
       </Button>
     </Card>
   );

@@ -8,6 +8,7 @@ export * from "./access";
 export * from "./addresses";
 export * from "./auth";
 export * from "./calls";
+export * from "./checkout";
 export * from "./contact";
 export * from "./course-categories";
 export * from "./courses";

@@ -9,6 +9,7 @@ import { AccessModule } from './modules/access/access.module';
 import { AddressesModule } from './modules/addresses/addresses.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CallsModule } from './modules/calls/calls.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { CourseCategoriesModule } from './modules/course-categories/course-categories.module';
 import { CoursesModule } from './modules/courses/courses.module';
@@ -61,6 +62,7 @@ import { UsersModule } from './modules/users/users.module';
     ScholarshipsModule,
     OrdersModule,
     PaymentsModule,
+    CheckoutModule,
     SellersModule,
     PartnersModule,
     ExternalClientsModule,

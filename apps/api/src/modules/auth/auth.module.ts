@@ -30,5 +30,8 @@ import { LocalStrategy } from './strategies/local.strategy';
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],
+  // O checkout reaproveita o `register()` para criar o aluno durante a compra — é o mesmo
+  // cadastro da rota pública, com o mesmo e-mail de boas-vindas e a mesma senha inicial.
+  exports: [AuthService],
 })
 export class AuthModule {}

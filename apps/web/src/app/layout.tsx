@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 
 import { JsonLd } from "@/components/json-ld";
+import { Toaster } from "@/components/ui/sonner";
 import { siteConfig } from "@/lib/seo";
 import { organizationJsonLd, webSiteJsonLd } from "@/lib/structured-data";
 
@@ -95,6 +96,8 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col bg-background text-foreground">
           {children}
         </div>
+        {/* Container dos toasts — montado uma vez para o site inteiro. */}
+        <Toaster />
       </body>
     </html>
   );

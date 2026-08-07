@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type {
+  AsaasBoletoIdentificationFieldResponse,
   AsaasCustomerRequest,
   AsaasCustomerResponse,
   AsaasErrorResponse,
@@ -50,6 +51,14 @@ export class AsaasService {
     return this.request<AsaasPixQrCodeResponse>(`/payments/${paymentId}/pixQrCode`, {
       method: 'GET',
     });
+  }
+
+  /** Linha digitável do boleto — chamada separada da criação da cobrança. */
+  getBoletoIdentificationField(paymentId: string): Promise<AsaasBoletoIdentificationFieldResponse> {
+    return this.request<AsaasBoletoIdentificationFieldResponse>(
+      `/payments/${paymentId}/identificationField`,
+      { method: 'GET' },
+    );
   }
 
   private async request<TResponse>(

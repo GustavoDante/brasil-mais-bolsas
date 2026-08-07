@@ -202,21 +202,39 @@ Nenhum identificado para rotas principais
 
 ---
 
-## Payments Module (4 endpoints)
+## Payments Module (5 endpoints)
 
-| Endpoint                                 | Metodo | 200/201 | 400 | 401 | 403 | 429 | Testes |
-| ---------------------------------------- | ------ | ------- | --- | --- | --- | --- | ------ |
-| POST /v1/payment/credit_card             | POST   | ok      | ok  | ok  | -   | -   | 4      |
-| POST /v1/payment/create-interest-payment | POST   | ok      | -   | -   | -   | -   | 1      |
-| POST /v1/payment/asaas/pix               | POST   | ok      | -   | -   | -   | -   | 1      |
-| POST /v1/payment/asaas/webhook           | POST   | ok      | -   | ok  | -   | -   | 2      |
+| Endpoint                       | Metodo | 200/201 | 400 | 401 | 404 | 429 | Testes |
+| ------------------------------ | ------ | ------- | --- | --- | --- | --- | ------ |
+| POST /v1/payment/credit_card   | POST   | ok      | ok  | ok  | -   | -   | 4      |
+| POST /v1/payment/asaas/pix     | POST   | ok      | -   | -   | -   | -   | 1      |
+| POST /v1/payment/asaas/boleto  | POST   | ok      | ok  | ok  | -   | -   | 3      |
+| GET /v1/payment/:id            | GET    | ok      | -   | ok  | ok  | -   | 3      |
+| POST /v1/payment/asaas/webhook | POST   | ok      | -   | ok  | -   | -   | 2      |
 
 **Cenarios testados**:
 
 - Cartao com sucesso, sem token, payload invalido e campo extra
-- Interest payment com sucesso
 - PIX Asaas com sucesso
+- Boleto com sucesso, sem token e com campo extra
+- Consulta do proprio pagamento, sem token e pagamento de outro usuario (404)
 - Webhook Asaas com token valido e token invalido
+
+---
+
+## Checkout Module (1 endpoint)
+
+| Endpoint         | Metodo | 201 | 400 | 429 | Testes |
+| ---------------- | ------ | --- | --- | --- | ------ |
+| POST /v1/checkout | POST  | ok  | ok  | ok  | 9      |
+
+**Cenarios testados**:
+
+- Visitante (cria o aluno e devolve `accessToken`), sessao valida e token invalido tratado
+  como visitante
+- 400 sem aceite dos termos, cartao sem dados de cartao, PIX com dados de cartao, campo
+  desconhecido e cadastro incompleto
+- 429 no limite de 5 requisicoes por minuto
 
 ---
 

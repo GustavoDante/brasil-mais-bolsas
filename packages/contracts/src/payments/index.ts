@@ -12,12 +12,20 @@ export const CreatePixPaymentSchema = z
   .strict()
   .meta({ id: 'CreatePixPayment' });
 
-export const CreateInterestPaymentSchema = z
+export const CreateBoletoPaymentSchema = z
   .object({
     scholarship_id: zId('Informe a bolsa'),
+    renew: zOptionalBoolean(),
   })
   .strict()
-  .meta({ id: 'CreateInterestPayment' });
+  .meta({ id: 'CreateBoletoPayment' });
+
+/** Consulta do próprio pagamento (`GET /v1/payment/:id`) — é o que o front usa no polling. */
+export const PaymentIdParamSchema = z
+  .object({
+    id: zId('Informe o pagamento'),
+  })
+  .meta({ id: 'PaymentIdParam' });
 
 /**
  * Dados do cartão. **Trafegam, nunca são persistidos** — vão direto para o gateway.
@@ -87,7 +95,8 @@ export const PaymentEnvelopeSchema = apiEnvelope('payment', PaymentResponseSchem
 export const PaymentListEnvelopeSchema = apiEnvelope('payments', z.array(PaymentResponseSchema));
 
 export type CreatePixPaymentInput = z.infer<typeof CreatePixPaymentSchema>;
-export type CreateInterestPaymentInput = z.infer<typeof CreateInterestPaymentSchema>;
+export type CreateBoletoPaymentInput = z.infer<typeof CreateBoletoPaymentSchema>;
+export type PaymentIdParam = z.infer<typeof PaymentIdParamSchema>;
 export type CreateCreditCardPaymentInput = z.infer<typeof CreateCreditCardPaymentSchema>;
 export type AsaasWebhookInput = z.infer<typeof AsaasWebhookSchema>;
 export type PaymentResponse = z.infer<typeof PaymentResponseSchema>;

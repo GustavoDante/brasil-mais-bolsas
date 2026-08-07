@@ -61,6 +61,7 @@ export type AsaasPaymentResponse = {
   value: number;
   netValue?: number;
   billingType: AsaasBillingType;
+  dueDate?: string;
   invoiceUrl?: string;
   bankSlipUrl?: string;
   transactionReceiptUrl?: string;
@@ -69,6 +70,16 @@ export type AsaasPaymentResponse = {
     creditCardBrand?: string;
     creditCardToken?: string;
   };
+};
+
+/**
+ * Linha digitável do boleto. Não vem na resposta da criação da cobrança — o Asaas a expõe
+ * numa chamada à parte, porque o registro no banco emissor é assíncrono.
+ */
+export type AsaasBoletoIdentificationFieldResponse = {
+  identificationField: string;
+  nossoNumero?: string;
+  barCode?: string;
 };
 
 /** Links de pagamento aceitam `UNDEFINED` (o cliente escolhe a forma de pagamento). */

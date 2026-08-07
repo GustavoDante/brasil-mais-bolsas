@@ -66,6 +66,7 @@ describe('PaymentsService', () => {
     createCustomer: jest.Mock;
     createPayment: jest.Mock;
     getPixQrCode: jest.Mock;
+    getBoletoIdentificationField: jest.Mock;
   };
   let configService: { get: jest.Mock };
   let ordersService: { getOrCreateOpenOrder: jest.Mock };
@@ -91,6 +92,7 @@ describe('PaymentsService', () => {
       createCustomer: jest.fn(),
       createPayment: jest.fn(),
       getPixQrCode: jest.fn(),
+      getBoletoIdentificationField: jest.fn(),
     };
     configService = {
       get: jest.fn((key: string) => (key === 'ASAAS_WEBHOOK_TOKEN' ? 'webhook-token' : undefined)),
@@ -199,19 +201,98 @@ describe('PaymentsService', () => {
     });
   });
 
-  describe('createInterestPayment', () => {
-    it('deve impedir duplicidade de pagamento de interesse', async () => {
-      prisma.payment.findFirst.mockResolvedValue({ id: 'payment-existing' });
-
-      await expect(
-        service.createInterestPayment('user-1', { scholarship_id: 'scholarship-1' }),
-      ).rejects.toMatchObject({ httpStatus: 400 });
+  describe('createBoletoPayment', () => {
+    beforeEach(() => {
+      asaasService.createPayment.mockResolvedValue({
+        id: 'pay_boleto_123',
+        status: 'PENDING',
+        value: 500,
+        billingType: 'BOLETO',
+        invoiceUrl: 'https://invoice.test',
+        bankSlipUrl: 'https://bankslip.test',
+      });
+      asaasService.getBoletoIdentificationField.mockResolvedValue({
+        identificationField: '03399.63290 64000.000006 00125.201020 4 96150000010000',
+      });
     });
 
-    it('deve criar pagamento de interesse com cobranca PIX no Asaas', async () => {
+    it('deve criar cobranca de boleto e guardar link e linha digitavel', async () => {
+      const result = await service.createBoletoPayment('user-1', {
+        scholarship_id: 'scholarship-1',
+      });
+
+      expect(result.gateway.bankSlipUrl).toBe('https://bankslip.test');
+      expect(asaasService.createPayment).toHaveBeenCalledWith(
+        expect.objectContaining({ billingType: 'BOLETO', customer: 'cus_123' }),
+      );
+      expect(prisma.payment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ payment_type: PaymentType.BOLETO }),
+        }),
+      );
+      expect(prisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            url_boleto: 'https://bankslip.test',
+            code_boleto: '03399.63290 64000.000006 00125.201020 4 96150000010000',
+          }),
+        }),
+      );
+    });
+
+    it('deve seguir sem a linha digitavel quando o Asaas ainda nao a devolve', async () => {
+      asaasService.getBoletoIdentificationField.mockRejectedValue(
+        new AppException('asaas-rejected'),
+      );
+
+      const result = await service.createBoletoPayment('user-1', {
+        scholarship_id: 'scholarship-1',
+      });
+
+      expect(result.gateway.identificationField).toBeUndefined();
+      expect(result.gateway.bankSlipUrl).toBe('https://bankslip.test');
+    });
+
+    it('deve marcar o pagamento como FAILED quando o Asaas recusar a cobranca', async () => {
+      asaasService.createPayment.mockRejectedValue(new AppException('asaas-rejected'));
+
+      await expect(
+        service.createBoletoPayment('user-1', { scholarship_id: 'scholarship-1' }),
+      ).rejects.toMatchObject({ httpStatus: 400 });
+
+      expect(prisma.payment.update).toHaveBeenCalledWith({
+        where: { id: 'payment-1' },
+        data: { status: 'FAILED' },
+      });
+    });
+  });
+
+  describe('findOwnPayment', () => {
+    it('deve devolver o pagamento do proprio usuario', async () => {
+      prisma.payment.findFirst.mockResolvedValue(mockPayment);
+
+      await expect(service.findOwnPayment('user-1', 'payment-1')).resolves.toMatchObject({
+        id: 'payment-1',
+      });
+      expect(prisma.payment.findFirst).toHaveBeenCalledWith({
+        where: { id: 'payment-1', user_id: 'user-1', delete: false },
+      });
+    });
+
+    it('deve responder 404 quando o pagamento e de outro usuario', async () => {
       prisma.payment.findFirst.mockResolvedValue(null);
+
+      await expect(service.findOwnPayment('user-1', 'payment-de-outro')).rejects.toMatchObject({
+        code: 'payment-not-found',
+        httpStatus: 404,
+      });
+    });
+  });
+
+  describe('createCharge', () => {
+    it('deve normalizar a cobranca PIX com o QR Code', async () => {
       asaasService.createPayment.mockResolvedValue({
-        id: 'pay_interest_123',
+        id: 'pay_pix_123',
         status: 'PENDING',
         value: 500,
         billingType: 'PIX',
@@ -223,18 +304,80 @@ describe('PaymentsService', () => {
         expirationDate: '2026-05-15T00:00:00.000Z',
       });
 
-      const result = await service.createInterestPayment('user-1', {
+      const { charge } = await service.createCharge('user-1', {
         scholarship_id: 'scholarship-1',
+        method: 'PIX',
       });
 
-      expect(result.paymentId).toBe('payment-1');
+      expect(charge).toMatchObject({
+        method: 'PIX',
+        status: 'PENDING',
+        pixQrCode: { payload: 'pix-copy-and-paste' },
+      });
+    });
+
+    it('deve normalizar a cobranca de boleto com link e linha digitavel', async () => {
+      asaasService.createPayment.mockResolvedValue({
+        id: 'pay_boleto_123',
+        status: 'PENDING',
+        value: 500,
+        billingType: 'BOLETO',
+        bankSlipUrl: 'https://bankslip.test',
+      });
+      asaasService.getBoletoIdentificationField.mockResolvedValue({
+        identificationField: '03399.63290',
+      });
+
+      const { charge } = await service.createCharge('user-1', {
+        scholarship_id: 'scholarship-1',
+        method: 'BOLETO',
+      });
+
+      expect(charge).toMatchObject({
+        method: 'BOLETO',
+        bankSlipUrl: 'https://bankslip.test',
+        barCode: '03399.63290',
+      });
+    });
+
+    it('deve normalizar a cobranca de cartao sem dados de PIX ou boleto', async () => {
+      asaasService.createPayment.mockResolvedValue({
+        id: 'pay_card_123',
+        status: 'CONFIRMED',
+        value: 500,
+        billingType: 'CREDIT_CARD',
+        invoiceUrl: 'https://invoice.test',
+      });
+
+      const { charge } = await service.createCharge('user-1', {
+        scholarship_id: 'scholarship-1',
+        method: 'CREDIT_CARD',
+        installment_count: 3,
+        creditCard: {
+          holderName: 'USUARIO TESTE',
+          number: '5162306219378829',
+          expiryMonth: '05',
+          expiryYear: '2028',
+          ccv: '318',
+        },
+        creditCardHolderInfo: {
+          name: 'Usuario Teste',
+          email: 'user@test.com',
+          cpfCnpj: '12345678901',
+          postalCode: '01000-000',
+          addressNumber: '100',
+          mobilePhone: '11999999999',
+        },
+        remoteIp: '203.0.113.10',
+      });
+
+      expect(charge).toEqual({
+        method: 'CREDIT_CARD',
+        status: 'CONFIRMED',
+        invoiceUrl: 'https://invoice.test',
+      });
       expect(asaasService.createPayment).toHaveBeenCalledWith(
-        expect.objectContaining({ billingType: 'PIX', customer: 'cus_123' }),
-      );
-      expect(prisma.payment.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ payment_type: PaymentType.INTEREST }),
-        }),
+        expect.objectContaining({ installmentCount: 3 }),
       );
     });
   });

@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Controller,
   useForm,
   type Control,
   type FieldPath,
-  type UseFormSetValue,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -37,14 +36,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCepAutofill } from "@/hooks/use-cep-autofill";
 import { homeRouteFor } from "@/lib/auth/roles";
 import { isSafeRedirectPath } from "@/lib/utils";
-import {
-  fetchAddressByCep,
-  formatCep,
-  isCompleteCep,
-  onlyDigits,
-} from "@/lib/viacep";
+import { formatCep } from "@/lib/viacep";
 import {
   registerInputSchema,
   type RegisterInput,
@@ -126,56 +121,6 @@ function TextField({
   );
 }
 
-/**
- * Busca o endereço assim que o CEP fica completo e preenche o que o ViaCEP devolver.
- *
- * Só sobrescreve os campos que vieram preenchidos na resposta: CEP de interior costuma vir
- * sem logradouro/bairro, e apagar o que a pessoa já digitou seria pior que não preencher.
- * `shouldValidate` limpa o erro dos campos que acabaram de ganhar valor.
- */
-function useCepAutofill(
-  cep: string,
-  setValue: UseFormSetValue<RegisterInput>,
-): boolean {
-  const [loading, setLoading] = useState(false);
-  const lastLookup = useRef<string | null>(null);
-
-  useEffect(() => {
-    const digits = onlyDigits(cep);
-
-    if (!isCompleteCep(digits)) {
-      lastLookup.current = null;
-      return;
-    }
-
-    // Sem isto, cada tecla depois do 8º dígito (ex.: a máscara) refaria a busca.
-    if (lastLookup.current === digits) return;
-    lastLookup.current = digits;
-
-    const controller = new AbortController();
-    setLoading(true);
-
-    fetchAddressByCep(digits, controller.signal)
-      .then((address) => {
-        if (controller.signal.aborted || !address) return;
-
-        const options = { shouldValidate: true } as const;
-        if (address.street) setValue("address.street", address.street, options);
-        if (address.district)
-          setValue("address.district", address.district, options);
-        if (address.city) setValue("address.city", address.city, options);
-        if (address.state) setValue("address.state", address.state, options);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [cep, setValue]);
-
-  return loading;
-}
-
 interface RegisterFormProps {
   /** Destino pós-cadastro herdado de `/entrar?callbackUrl=...`. */
   callbackUrl?: string;
@@ -214,7 +159,19 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
 
   const { control, setValue } = form;
   const cep = form.watch("address.postal_code");
-  const cepLoading = useCepAutofill(cep, setValue);
+
+  /**
+   * Só sobrescreve o que veio preenchido na resposta: CEP de interior costuma vir sem
+   * logradouro/bairro, e apagar o que a pessoa já digitou seria pior que não preencher.
+   * `shouldValidate` limpa o erro dos campos que acabaram de ganhar valor.
+   */
+  const cepLoading = useCepAutofill(cep, (address) => {
+    const options = { shouldValidate: true } as const;
+    if (address.street) setValue("address.street", address.street, options);
+    if (address.district) setValue("address.district", address.district, options);
+    if (address.city) setValue("address.city", address.city, options);
+    if (address.state) setValue("address.state", address.state, options);
+  });
 
   const onSubmit = async (data: RegisterInput) => {
     setFormError(null);

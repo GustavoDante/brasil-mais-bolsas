@@ -656,6 +656,44 @@ E-mails existentes:
 | `sendPaymentConfirmed` | webhook do Asaas, na **primeira** baixa do pagamento |
 | `sendContact` | `POST /v1/contact` |
 
+## Pagamentos e checkout (`src/modules/payments`, `src/modules/checkout`)
+
+Cobrança avulsa no Asaas sobre `Order` + `Payment` — **não existe assinatura recorrente**
+(nem modelo `Subscription`, nem `/subscriptions` no gateway). A renovação é o job
+`orders-renewal`.
+
+| Rota | Guard | O que faz |
+| --- | --- | --- |
+| `POST /v1/checkout` | opcional | Cadastro (quando não há sessão) + cobrança, numa requisição |
+| `POST /v1/payment/credit_card` | JWT | Cobrança no cartão, com parcelamento |
+| `POST /v1/payment/asaas/pix` | JWT | Cobrança PIX + QR Code |
+| `POST /v1/payment/asaas/boleto` | JWT | Boleto: link e linha digitável |
+| `GET /v1/payment/:id` | JWT | Pagamento do próprio usuário (polling da confirmação) |
+| `POST /v1/payment/asaas/webhook` | token no header | Baixa do pagamento |
+
+- **`POST /v1/checkout` é a rota do fluxo de contratação do site.** Ela existe porque o
+  caminho alternativo (o front chamar `auth/register` e depois `payment/*`) tem um estado
+  intermediário ruim: usuário criado e cobrança recusada, com o aluno sem saber que já tem
+  conta. Usa o `OptionalJwtAuthGuard` (`modules/auth/guards`), que valida o token quando ele
+  vem e segue sem `req.user` quando não vem — token inválido é tratado como visitante, nunca
+  como sessão. Com sessão, o `customer` do corpo é **ignorado**: aceitar cadastro de quem já
+  está autenticado abriria uma segunda porta para criar conta. Limite de 5 req/min.
+- **O IP do antifraude sai da requisição** (`req.ip`), não do corpo — um IP escolhido pelo
+  cliente não diz nada sobre a origem da compra.
+- **`PaymentsService.createCharge`** normaliza as três formas numa saída só
+  (`CheckoutCharge`), porque a resposta do gateway muda de campo conforme o método (QR Code
+  no PIX, linha digitável no boleto, nada disso no cartão) — sem isso a decisão de qual
+  campo ler vazaria para a tela.
+- **A linha digitável do boleto é opcional no fluxo**: o registro no banco emissor é
+  assíncrono e o Asaas recusa a consulta enquanto ela não termina. A falha vira log, não
+  erro — a cobrança já existe e o aluno paga pelo link.
+- Vencimento do boleto: `PAYMENT_BOLETO_DUE_DAYS` (padrão 3).
+- **`GET /v1/payment/:id` responde 404 também para pagamento de outro usuário.** 403
+  confirmaria a existência do registro alheio para quem só tem o id.
+- O `create-interest-payment` **foi removido** (rota, schema e código de erro). O
+  `PaymentType.INTEREST` continua no Prisma: `reports.service.ts` filtra por ele e a
+  migração legada ainda o produz.
+
 ## Contato com o suporte (`src/modules/contact`)
 
 `POST /v1/contact` — rota **pública** que encaminha a mensagem do usuário para a caixa do
@@ -728,7 +766,7 @@ completa em [scripts/legacy-migration/README.md](./scripts/legacy-migration/READ
 ## Environment (`.env` — see `.env.example`)
 
 `DATABASE_URL`, `PORT`, `ALLOWED_ORIGINS`, `JWT_SECRET`, `JWT_EXPIRES_IN`,
-`ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `ASAAS_BASE_URL`,
+`ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `ASAAS_BASE_URL`, `PAYMENT_BOLETO_DUE_DAYS`,
 `LEGACY_DATABASE_URL` e `LEGACY_DATABASE_SSL` (apenas para a migração do banco legado),
 `JOBS_ENABLED`, `JOBS_TIMEZONE` e as `ORDERS_RENEWAL_*` (tarefas agendadas),
 `AWS_S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,

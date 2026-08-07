@@ -17,7 +17,11 @@ import { UserTypeSchema } from '../user-types';
  * Endereço enviado junto com o usuário.
  *
  * Derivado do model: os nomes e a obrigatoriedade vêm do banco (`.pick()`), e só o que é
- * regra de entrada — UF normalizada em 2 letras, `complement` opcional — é sobrescrito.
+ * regra de entrada é sobrescrito — UF normalizada em 2 letras, `complement` opcional e o
+ * mínimo de um caractere nos demais. Esse mínimo não é redundante: `NOT NULL` no banco vira
+ * `z.string()` no schema gerado, que aceita `""` — ou seja, sem ele um formulário com os
+ * campos de endereço em branco passava pela validação e o endereço chegava vazio ao
+ * cadastro e ao gateway de pagamento.
  */
 export const CreateAddressSchema = AddressSchema.pick({
   street: true,
@@ -27,6 +31,11 @@ export const CreateAddressSchema = AddressSchema.pick({
   postal_code: true,
 })
   .extend({
+    street: zText('Informe a rua'),
+    city: zText('Informe a cidade'),
+    number: zText('Informe o número'),
+    district: zText('Informe o bairro'),
+    postal_code: zText('Informe o CEP', { min: 8 }),
     state: zState(),
     complement: z.string().optional(),
   })

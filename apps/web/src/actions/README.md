@@ -192,6 +192,14 @@ Legenda: 🔒 exige sessão · ◐ envia o token se houver · sem marca = rota p
 | `listMyCalls` | `GET /v1/calls/user` | 🔒 | Lista as ligações do usuário autenticado. |
 | `updateCall` | `PATCH /v1/calls/:id` | 🔒 | Atualiza uma ligação. |
 
+### `checkout` (1)
+
+| Action | Rota | Auth | Descrição |
+| --- | --- | --- | --- |
+| `createCheckout` | `POST /v1/checkout` | 🔓 | Contrata a bolsa: cria a conta quando não há sessão (e grava o token) e gera a cobrança. |
+
+> 🔓 = `auth: "optional"` — a mesma rota atende visitante e aluno logado.
+
 ### `contact` (1)
 
 | Action | Rota | Auth | Descrição |
@@ -329,8 +337,8 @@ Legenda: 🔒 exige sessão · ◐ envia o token se houver · sem marca = rota p
 | Action | Rota | Auth | Descrição |
 | --- | --- | --- | --- |
 | `createCreditCardPayment` | `POST /v1/payment/credit_card` | 🔒 | Cria um pagamento com cartão de crédito. |
-| `createInterestPayment` | `POST /v1/payment/create-interest-payment` | 🔒 | Gera a cobrança de juros/renovação de uma bolsa. |
 | `createPixPayment` | `POST /v1/payment/asaas/pix` | 🔒 | Cria um pagamento via PIX e devolve o QR Code. |
+| `getPayment` | `GET /v1/payment/:id` | 🔒 | Consulta um pagamento do próprio usuário (polling da confirmação). |
 
 ### `possible-partners` (5)
 

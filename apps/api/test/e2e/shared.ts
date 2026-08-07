@@ -7,6 +7,7 @@ import { AllExceptionsFilter } from '../../src/common/filters/all-exceptions.fil
 import { DurationType, ScholarshipType } from '@repo/db';
 import { AuthService } from '../../src/modules/auth/auth.service';
 import { CallsService } from '../../src/modules/calls/calls.service';
+import { CheckoutService } from '../../src/modules/checkout/checkout.service';
 import { CourseCategoriesService } from '../../src/modules/course-categories/course-categories.service';
 import { CoursesService } from '../../src/modules/courses/courses.service';
 import { FaqService } from '../../src/modules/faq/faq.service';
@@ -48,9 +49,15 @@ export const validContactPayload = {
 
 export const paymentsServiceMock = {
   createCreditCardPayment: jest.fn<Promise<GenericObject>, [string | number, GenericObject]>(),
-  createInterestPayment: jest.fn<Promise<GenericObject>, [string | number, GenericObject]>(),
+  createBoletoPayment: jest.fn<Promise<GenericObject>, [string | number, GenericObject]>(),
   createPixPayment: jest.fn<Promise<GenericObject>, [string | number, GenericObject]>(),
+  createCharge: jest.fn<Promise<GenericObject>, [string, GenericObject]>(),
+  findOwnPayment: jest.fn<Promise<GenericObject>, [string, string]>(),
   handleAsaasWebhook: jest.fn<Promise<GenericObject>, [string | undefined, GenericObject]>(),
+};
+
+export const checkoutServiceMock = {
+  checkout: jest.fn<Promise<GenericObject>, [GenericObject | undefined, GenericObject]>(),
 };
 
 export const ordersServiceMock = {
@@ -435,8 +442,58 @@ export const validPixPaymentPayload = {
   scholarship_id: 'scholarship-1',
 };
 
-export const validInterestPaymentPayload = {
+export const validBoletoPaymentPayload = {
   scholarship_id: 'scholarship-1',
+};
+
+export const validCheckoutCustomer = {
+  name: 'Joao da Silva',
+  email: 'joao.novo@test.com',
+  phone: '11999999999',
+  birthdate: '1990-01-01',
+  cpf: '12345678901',
+  rg: '123456789',
+  rg_emissor: 'SSP',
+  address: {
+    street: 'Rua A',
+    number: '100',
+    district: 'Centro',
+    city: 'Sao Paulo',
+    state: 'SP',
+    postal_code: '01000-000',
+  },
+};
+
+export const validCheckoutPayload = {
+  scholarship_id: 'scholarship-1',
+  customer: validCheckoutCustomer,
+  payment: { method: 'PIX' },
+  accepted_terms: true,
+};
+
+export const validCreditCardCheckoutPayload = {
+  scholarship_id: 'scholarship-1',
+  payment: {
+    method: 'CREDIT_CARD',
+    installment_count: 1,
+    creditCard: {
+      holderName: 'JOAO DA SILVA',
+      number: '5162306219378829',
+      expiryMonth: '05',
+      expiryYear: '2028',
+      ccv: '318',
+    },
+    creditCardHolderInfo: {
+      name: 'Joao da Silva',
+      email: 'joao.novo@test.com',
+      cpfCnpj: '12345678901',
+      postalCode: '01000-000',
+      addressNumber: '100',
+      mobilePhone: '11999999999',
+    },
+    remoteIp: '203.0.113.10',
+  },
+  accepted_terms: true,
 };
 
 // ============ MOCK SETUP HELPERS ============
@@ -549,15 +606,20 @@ export function setupPaymentsServiceMocks(): void {
     message: 'payment-created',
     status: 'CONFIRMED',
   });
-  paymentsServiceMock.createInterestPayment.mockResolvedValue({
+  paymentsServiceMock.createBoletoPayment.mockResolvedValue({
     ok: true,
-    message: 'interest-payment-created-successfully',
-    paymentId: 'payment-1',
+    message: 'boleto-payment-created',
+    gateway: { bankSlipUrl: 'https://bankslip.test' },
   });
   paymentsServiceMock.createPixPayment.mockResolvedValue({
     ok: true,
     message: 'pix-payment-created',
   });
+  paymentsServiceMock.createCharge.mockResolvedValue({
+    payment: { id: 'payment-1', status: 'PENDING' },
+    charge: { method: 'PIX', status: 'PENDING' },
+  });
+  paymentsServiceMock.findOwnPayment.mockResolvedValue({ id: 'payment-1', status: 'CONFIRMED' });
   paymentsServiceMock.handleAsaasWebhook.mockImplementation((accessToken) => {
     if (accessToken !== 'webhook-token') {
       return Promise.reject(new AppException('invalid-asaas-webhook-token'));
@@ -567,6 +629,18 @@ export function setupPaymentsServiceMocks(): void {
       ok: true,
       message: 'asaas-webhook-processed',
     });
+  });
+}
+
+export function setupCheckoutServiceMocks(): void {
+  checkoutServiceMock.checkout.mockResolvedValue({
+    ok: true,
+    message: 'checkout-created',
+    checkout: {
+      payment: { id: 'payment-1', status: 'PENDING' },
+      charge: { method: 'PIX', status: 'PENDING' },
+      accessToken: 'mocked-access-token',
+    },
   });
 }
 
@@ -740,6 +814,7 @@ export async function createTestApp(): Promise<{
   setupScholarshipsServiceMocks();
   setupOrdersServiceMocks();
   setupPaymentsServiceMocks();
+  setupCheckoutServiceMocks();
   setupSellersServiceMocks();
   setupPartnersServiceMocks();
   setupCallsServiceMocks();
@@ -769,6 +844,8 @@ export async function createTestApp(): Promise<{
     .useValue(ordersServiceMock)
     .overrideProvider(PaymentsService)
     .useValue(paymentsServiceMock)
+    .overrideProvider(CheckoutService)
+    .useValue(checkoutServiceMock)
     .overrideProvider(SellersService)
     .useValue(sellersServiceMock)
     .overrideProvider(PartnersService)

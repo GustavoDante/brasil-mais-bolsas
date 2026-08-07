@@ -46,24 +46,35 @@ export class PixPaymentResponseDto {
   pixQrCode!: PixQrCodeDto;
 }
 
-export class InterestPaymentResponseDto {
+class BoletoGatewayDto extends PaymentGatewayDto {
+  @ApiPropertyOptional({
+    example: 'https://asaas.com/b/pdf/123',
+    description: 'Link do boleto para impressão',
+  })
+  bankSlipUrl?: string;
+
+  @ApiPropertyOptional({
+    example: '03399.63290 64000.000006 00125.201020 4 96150000010000',
+    description: 'Linha digitável — ausente enquanto o boleto não é registrado pelo banco',
+  })
+  identificationField?: string;
+
+  @ApiPropertyOptional({ example: '2026-08-09', description: 'Vencimento do boleto' })
+  dueDate?: string;
+}
+
+export class BoletoPaymentResponseDto {
   @ApiProperty({ example: true })
   ok!: boolean;
 
-  @ApiProperty({ example: 'interest-payment-created-successfully' })
+  @ApiProperty({ example: 'boleto-payment-created' })
   message!: string;
-
-  @ApiProperty({ example: 'cuid-payment-id' })
-  paymentId!: string;
 
   @ApiProperty({ description: 'Dados do pagamento registrado no banco' })
   payment!: Payment;
 
-  @ApiProperty({ type: PaymentGatewayDto })
-  gateway!: PaymentGatewayDto;
-
-  @ApiProperty({ type: PixQrCodeDto })
-  pixQrCode!: PixQrCodeDto;
+  @ApiProperty({ type: BoletoGatewayDto })
+  gateway!: BoletoGatewayDto;
 }
 
 export class CreditCardPaymentResponseDto {

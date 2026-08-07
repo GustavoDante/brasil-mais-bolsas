@@ -58,10 +58,9 @@ export const ERROR_CATALOG = {
   'invalid-order': { status: 400, message: 'Pedido inválido.' },
   'order-already-exists': { status: 400, message: 'Já existe um pedido para esta bolsa.' },
   'missing-order-id': { status: 400, message: 'Informe o pedido.' },
-  'interest-payment-already-exists': {
-    status: 400,
-    message: 'Já existe uma cobrança de juros para este pedido.',
-  },
+  // 404 também quando o pagamento existe mas é de outro usuário: responder 403 confirmaria
+  // a existência do registro alheio para quem só tem o id.
+  'payment-not-found': { status: 404, message: 'Pagamento não encontrado.' },
   'external-client-not-found': {
     status: 400,
     message: 'Cliente não encontrado no gateway de pagamento.',

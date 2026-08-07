@@ -11,5 +11,6 @@ import { OrdersModule } from '../orders/orders.module';
   imports: [PrismaModule, AuthModule, AsaasModule, OrdersModule, MailModule],
   controllers: [PaymentsController],
   providers: [PaymentsService],
+  exports: [PaymentsService],
 })
 export class PaymentsModule {}

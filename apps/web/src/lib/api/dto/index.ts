@@ -13,6 +13,7 @@ import type {
   Access,
   Address,
   Call,
+  CheckoutCharge,
   City,
   CourseCategorySummary,
   CourseSummary,
@@ -44,6 +45,10 @@ export type { Decimalish, IsoDate } from "@repo/contracts";
 export type {
   AuthProfile as AuthProfileDto,
   AuthResponse as AuthResponseDto,
+  CheckoutCharge as CheckoutChargeDto,
+  CheckoutInput as CheckoutRequestDto,
+  CheckoutPaymentMethod as CheckoutPaymentMethodDto,
+  CheckoutPixQrCode as CheckoutPixQrCodeDto,
   ContactRequestInput as ContactRequestDto,
   CreateIndicationInput as IndicationRequestDto,
   CreatePossiblePartnerInput as PossiblePartnerRequestDto,
@@ -168,6 +173,22 @@ export interface PaymentResultDto {
   payment: PaymentDto;
   gateway?: PaymentGatewayDto;
   pixQrCode?: PixQrCodeDto;
+}
+
+/** `POST /v1/checkout` — a cobrança normalizada mais o token, quando a conta nasceu aqui. */
+export interface CheckoutResultDto {
+  payment: PaymentDto;
+  charge: CheckoutCharge;
+  accessToken?: string;
+}
+
+export interface CheckoutResponseDto extends ApiOkResponse {
+  checkout: CheckoutResultDto;
+}
+
+/** `GET /v1/payment/:id` */
+export interface PaymentResponseDto extends ApiOkResponse {
+  payment: PaymentDto;
 }
 
 export interface AsaasWebhookResultDto {

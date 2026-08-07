@@ -1,16 +1,24 @@
-import { Body, Controller, Headers, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Headers, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
+import type { Payment } from '@repo/db';
 import type { JwtUser } from '../auth/strategies/jwt.strategy';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AsaasWebhookDto } from './dto/asaas-webhook.dto';
+import { CreateBoletoPaymentDto } from './dto/create-boleto-payment.dto';
 import { CreateCreditCardPaymentDto } from './dto/create-credit-card-payment.dto';
-import { CreateInterestPaymentDto } from './dto/create-interest-payment.dto';
 import { CreatePixPaymentDto } from './dto/create-pix-payment.dto';
 import {
   AsaasWebhookResponseDto,
+  BoletoPaymentResponseDto,
   CreditCardPaymentResponseDto,
-  InterestPaymentResponseDto,
   PixPaymentResponseDto,
 } from './dto/payments-response.dto';
 import { PaymentsService } from './payments.service';
@@ -47,26 +55,26 @@ export class PaymentsController {
     return this.paymentsService.createCreditCardPayment(req.user.userId, createDto);
   }
 
-  @Post('create-interest-payment')
+  @Post('asaas/boleto')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Registrar pagamento de interesse para uma bolsa',
-    description: 'Gera uma cobranca de interesse (PIX) para reservar uma bolsa.',
+    summary: 'Criar cobranca por boleto via Asaas',
+    description: 'Gera o boleto no Asaas e devolve o link e a linha digitavel.',
   })
   @ApiResponse({
     status: 201,
-    description: 'Pagamento criado com sucesso.',
-    type: InterestPaymentResponseDto,
+    description: 'Boleto criado com sucesso.',
+    type: BoletoPaymentResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Pagamento ja existente ou dados invalidos.' })
+  @ApiResponse({ status: 400, description: 'Dados invalidos ou erro no Asaas.' })
   @ApiResponse({ status: 401, description: 'Token JWT ausente ou invalido.' })
   @ApiResponse({ status: 429, description: 'Limite de requisicoes (Rate limit) excedido.' })
-  createInterestPayment(
+  createBoletoPayment(
     @Req() req: AuthenticatedPaymentRequest,
-    @Body() createDto: CreateInterestPaymentDto,
-  ): Promise<InterestPaymentResponseDto> {
-    return this.paymentsService.createInterestPayment(req.user.userId, createDto);
+    @Body() createDto: CreateBoletoPaymentDto,
+  ): Promise<BoletoPaymentResponseDto> {
+    return this.paymentsService.createBoletoPayment(req.user.userId, createDto);
   }
 
   @Post('asaas/pix')
@@ -89,6 +97,27 @@ export class PaymentsController {
     @Body() createDto: CreatePixPaymentDto,
   ): Promise<PixPaymentResponseDto> {
     return this.paymentsService.createPixPayment(req.user.userId, createDto);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Consultar um pagamento do proprio usuario',
+    description:
+      'Devolve o pagamento com o status atualizado pelo webhook. E a rota que a tela de ' +
+      'acompanhamento consulta enquanto o PIX ou o boleto nao sao confirmados.',
+  })
+  @ApiParam({ name: 'id', description: 'ID do pagamento' })
+  @ApiResponse({ status: 200, description: 'Pagamento encontrado.' })
+  @ApiResponse({ status: 401, description: 'Token JWT ausente ou invalido.' })
+  @ApiResponse({ status: 404, description: 'Pagamento nao encontrado.' })
+  async findOne(
+    @Req() req: AuthenticatedPaymentRequest,
+    @Param('id') id: string,
+  ): Promise<{ ok: boolean; payment: Payment }> {
+    const payment = await this.paymentsService.findOwnPayment(req.user.userId, id);
+    return { ok: true, payment };
   }
 
   @Post('asaas/webhook')

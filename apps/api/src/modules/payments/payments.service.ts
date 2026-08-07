@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { PaymentType, PersonType, Prisma } from '@repo/db';
+import type {
+  CheckoutCharge,
+  CreateBoletoPaymentInput,
+  CreateCreditCardPaymentInput,
+  CreatePixPaymentInput,
+} from '@repo/contracts';
 import { AsaasService } from '../../integrations/asaas/asaas.service';
 import type { AsaasPaymentRequest } from '../../integrations/asaas/types/asaas.types';
 import { MailService } from '../../integrations/mail/mail.service';
 import { OrdersService } from '../orders/orders.service';
 import type { AsaasWebhookDto } from './dto/asaas-webhook.dto';
-import type { CreateCreditCardPaymentDto } from './dto/create-credit-card-payment.dto';
-import type { CreateInterestPaymentDto } from './dto/create-interest-payment.dto';
-import type { CreatePixPaymentDto } from './dto/create-pix-payment.dto';
 import { AppException } from '../../common/exceptions/app.exception';
 
 type PaymentUser = Prisma.UserGetPayload<{
@@ -18,8 +21,25 @@ type PaymentUser = Prisma.UserGetPayload<{
 
 type PaymentScholarship = Prisma.ScholarshipGetPayload<Record<string, never>>;
 type PaymentOrder = Prisma.OrderGetPayload<Record<string, never>>;
+
+/**
+ * Entrada de `createCharge` — união discriminada pela forma de pagamento: só o cartão
+ * carrega dados de cartão, e o compilador não deixa montar a chamada pela metade.
+ */
+export type CreateChargeInput = { scholarship_id: string; renew?: boolean } & (
+  | { method: 'PIX' | 'BOLETO' }
+  | {
+      method: 'CREDIT_CARD';
+      installment_count: number;
+      creditCard: NonNullable<CreateCreditCardPaymentInput['creditCard']>;
+      creditCardHolderInfo: NonNullable<CreateCreditCardPaymentInput['creditCardHolderInfo']>;
+      remoteIp: string;
+    }
+);
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly asaasService: AsaasService,
@@ -28,7 +48,78 @@ export class PaymentsService {
     private readonly mailService: MailService,
   ) {}
 
-  async createCreditCardPayment(userId: string, dto: CreateCreditCardPaymentDto) {
+  /**
+   * Cobra pela forma escolhida e devolve o resultado **normalizado** (`CheckoutCharge`).
+   *
+   * Existe para o checkout, que precisa tratar as três formas pela mesma saída: a resposta
+   * do gateway muda de campo conforme o método (QR Code no PIX, linha digitável no boleto,
+   * nada disso no cartão) e sem esta camada a decisão de qual campo ler vaza para a tela.
+   */
+  async createCharge(
+    userId: string,
+    input: CreateChargeInput,
+  ): Promise<{ payment: Prisma.PaymentGetPayload<Record<string, never>>; charge: CheckoutCharge }> {
+    if (input.method === 'CREDIT_CARD') {
+      const result = await this.createCreditCardPayment(userId, {
+        scholarship_id: input.scholarship_id,
+        installment_count: input.installment_count,
+        renew: input.renew,
+        creditCard: input.creditCard,
+        creditCardHolderInfo: input.creditCardHolderInfo,
+        remoteIp: input.remoteIp,
+      });
+      return {
+        payment: result.payment,
+        charge: {
+          method: 'CREDIT_CARD',
+          status: result.gateway.status,
+          invoiceUrl: result.gateway.invoiceUrl ?? null,
+        },
+      };
+    }
+
+    if (input.method === 'BOLETO') {
+      const result = await this.createBoletoPayment(userId, input);
+      return {
+        payment: result.payment,
+        charge: {
+          method: 'BOLETO',
+          status: result.gateway.status,
+          invoiceUrl: result.gateway.invoiceUrl ?? null,
+          bankSlipUrl: result.gateway.bankSlipUrl ?? null,
+          barCode: result.gateway.identificationField ?? null,
+        },
+      };
+    }
+
+    const result = await this.createPixPayment(userId, input);
+    return {
+      payment: result.payment,
+      charge: {
+        method: 'PIX',
+        status: result.gateway.status,
+        invoiceUrl: result.gateway.invoiceUrl ?? null,
+        pixQrCode: result.pixQrCode,
+      },
+    };
+  }
+
+  /** Pagamento do próprio usuário — base do polling da tela de acompanhamento. */
+  async findOwnPayment(userId: string, paymentId: string) {
+    const payment = await this.prisma.payment.findFirst({
+      where: { id: paymentId, user_id: userId, delete: false },
+    });
+
+    // 404 (e não 403) também quando o pagamento é de outro usuário: distinguir os dois
+    // casos transformaria a rota num verificador de ids de pagamento.
+    if (!payment) {
+      throw new AppException('payment-not-found');
+    }
+
+    return payment;
+  }
+
+  async createCreditCardPayment(userId: string, dto: CreateCreditCardPaymentInput) {
     const { user, scholarship } = await this.getPaymentContext(userId, dto.scholarship_id);
     const customerId = await this.ensureAsaasCustomer(user);
     const order = await this.ordersService.getOrCreateOpenOrder(
@@ -93,65 +184,59 @@ export class PaymentsService {
     }
   }
 
-  async createInterestPayment(userId: string, dto: CreateInterestPaymentDto) {
+  async createBoletoPayment(userId: string, dto: CreateBoletoPaymentInput) {
     const { user, scholarship } = await this.getPaymentContext(userId, dto.scholarship_id);
-
-    const existingPayment = await this.prisma.payment.findFirst({
-      where: {
-        user_id: user.id,
-        scholarship_id: scholarship.id,
-        payment_type: PaymentType.INTEREST,
-        delete: false,
-      },
-    });
-
-    if (existingPayment) {
-      throw new AppException('interest-payment-already-exists');
-    }
-
     const customerId = await this.ensureAsaasCustomer(user);
-    const order = await this.ordersService.getOrCreateOpenOrder(user.id, scholarship.id, false);
+    const order = await this.ordersService.getOrCreateOpenOrder(
+      user.id,
+      scholarship.id,
+      dto.renew === true,
+    );
     const payment = await this.createPendingPayment({
       userId: user.id,
       scholarship,
       order,
-      paymentType: PaymentType.INTEREST,
+      paymentType: PaymentType.BOLETO,
       installmentCount: 1,
-      renew: false,
+      renew: dto.renew === true,
     });
+
+    const dueDate = this.boletoDueDate();
 
     try {
       const asaasPayment = await this.asaasService.createPayment({
         customer: customerId,
-        billingType: PaymentType.PIX,
+        billingType: PaymentType.BOLETO,
         value: this.toNumber(scholarship.final_price),
-        dueDate: this.todayAsaasDate(),
+        dueDate: this.toAsaasDate(dueDate),
         description: this.buildPaymentDescription(scholarship),
         externalReference: payment.id,
       });
-      const pixQrCode = await this.asaasService.getPixQrCode(asaasPayment.id);
+      const identificationField = await this.fetchBoletoIdentificationField(asaasPayment.id);
+      const bankSlipUrl = asaasPayment.bankSlipUrl ?? asaasPayment.invoiceUrl;
       const updatedPayment = await this.prisma.payment.update({
         where: { id: payment.id },
         data: {
           gateway_payment_id: asaasPayment.id,
           status: asaasPayment.status,
-          code_boleto: pixQrCode.payload,
-          url_boleto: asaasPayment.invoiceUrl,
-          boleto_expire_date: new Date(pixQrCode.expirationDate),
+          code_boleto: identificationField,
+          url_boleto: bankSlipUrl,
+          boleto_expire_date: dueDate,
         },
       });
 
       return {
         ok: true,
-        message: 'interest-payment-created-successfully',
-        paymentId: updatedPayment.id,
+        message: 'boleto-payment-created',
         payment: updatedPayment,
         gateway: {
           id: asaasPayment.id,
           status: asaasPayment.status,
           invoiceUrl: asaasPayment.invoiceUrl,
+          bankSlipUrl,
+          identificationField,
+          dueDate: this.toAsaasDate(dueDate),
         },
-        pixQrCode,
       };
     } catch (error) {
       await this.markPaymentAsFailed(payment.id);
@@ -159,7 +244,7 @@ export class PaymentsService {
     }
   }
 
-  async createPixPayment(userId: string, dto: CreatePixPaymentDto) {
+  async createPixPayment(userId: string, dto: CreatePixPaymentInput) {
     const { user, scholarship } = await this.getPaymentContext(userId, dto.scholarship_id);
     const customerId = await this.ensureAsaasCustomer(user);
     const order = await this.ordersService.getOrCreateOpenOrder(
@@ -362,7 +447,42 @@ export class PaymentsService {
   }
 
   private todayAsaasDate(): string {
-    return new Date().toISOString().slice(0, 10);
+    return this.toAsaasDate(new Date());
+  }
+
+  private toAsaasDate(date: Date): string {
+    return date.toISOString().slice(0, 10);
+  }
+
+  /** Vencimento do boleto: `PAYMENT_BOLETO_DUE_DAYS` dias a partir de hoje (padrão 3). */
+  private boletoDueDate(): Date {
+    const configured = Number(this.configService.get<string>('PAYMENT_BOLETO_DUE_DAYS'));
+    const days = Number.isFinite(configured) && configured > 0 ? Math.trunc(configured) : 3;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + days);
+    return dueDate;
+  }
+
+  /**
+   * A linha digitável é opcional no fluxo: o registro do boleto no banco emissor é
+   * assíncrono e o Asaas recusa a consulta enquanto ela não termina. Derrubar o checkout
+   * por isso perderia uma cobrança já criada — o aluno paga pelo link do boleto, que a
+   * criação já devolveu.
+   */
+  private async fetchBoletoIdentificationField(
+    gatewayPaymentId: string,
+  ): Promise<string | undefined> {
+    try {
+      const response = await this.asaasService.getBoletoIdentificationField(gatewayPaymentId);
+      return response.identificationField;
+    } catch (error) {
+      this.logger.warn(
+        `Linha digitável indisponível para a cobrança ${gatewayPaymentId}: ${
+          error instanceof Error ? error.message : 'erro desconhecido'
+        }`,
+      );
+      return undefined;
+    }
   }
 
   private toNumber(value: Prisma.Decimal | number): number {

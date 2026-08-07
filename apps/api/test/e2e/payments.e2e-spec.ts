@@ -1,10 +1,11 @@
 import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { AppException } from '../../src/common/exceptions/app.exception';
 import {
   createTestApp,
   paymentsServiceMock,
+  validBoletoPaymentPayload,
   validCreditCardPaymentPayload,
-  validInterestPaymentPayload,
   validPixPaymentPayload,
 } from './shared';
 
@@ -62,19 +63,61 @@ describe('Payments (e2e)', () => {
         .expect(400));
   });
 
-  describe('POST /v1/payment/create-interest-payment', () => {
-    it('deve registrar pagamento de interesse', async () => {
+  describe('POST /v1/payment/asaas/boleto', () => {
+    it('deve criar cobranca por boleto', async () => {
       const response = await request(app.getHttpServer())
-        .post('/v1/payment/create-interest-payment')
+        .post('/v1/payment/asaas/boleto')
         .set('Authorization', `Bearer ${userToken}`)
-        .send(validInterestPaymentPayload)
+        .send(validBoletoPaymentPayload)
         .expect(201);
 
-      expect(response.body.paymentId).toBe('payment-1');
-      expect(paymentsServiceMock.createInterestPayment).toHaveBeenCalledWith(
+      expect(response.body.message).toBe('boleto-payment-created');
+      expect(paymentsServiceMock.createBoletoPayment).toHaveBeenCalledWith(
         'user-1',
         expect.objectContaining({ scholarship_id: 'scholarship-1' }),
       );
+    });
+
+    it('deve retornar 401 sem token', () =>
+      request(app.getHttpServer())
+        .post('/v1/payment/asaas/boleto')
+        .send(validBoletoPaymentPayload)
+        .expect(401));
+
+    it('deve retornar 400 com campo extra', () =>
+      request(app.getHttpServer())
+        .post('/v1/payment/asaas/boleto')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ ...validBoletoPaymentPayload, installment_count: 3 })
+        .expect(400));
+  });
+
+  describe('GET /v1/payment/:id', () => {
+    it('deve devolver o pagamento do proprio usuario', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/v1/payment/payment-1')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
+
+      expect(response.body).toEqual({
+        ok: true,
+        payment: { id: 'payment-1', status: 'CONFIRMED' },
+      });
+      expect(paymentsServiceMock.findOwnPayment).toHaveBeenCalledWith('user-1', 'payment-1');
+    });
+
+    it('deve retornar 401 sem token', () =>
+      request(app.getHttpServer()).get('/v1/payment/payment-1').expect(401));
+
+    it('deve retornar 404 quando o pagamento nao e do usuario', async () => {
+      paymentsServiceMock.findOwnPayment.mockRejectedValueOnce(
+        new AppException('payment-not-found'),
+      );
+
+      await request(app.getHttpServer())
+        .get('/v1/payment/payment-de-outro')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(404);
     });
   });
 
